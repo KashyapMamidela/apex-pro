@@ -8,9 +8,16 @@ export async function proxy(request: NextRequest) {
         },
     })
 
+    // Skip Supabase auth if env vars are not configured (demo / local dev mode)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseUrl || !supabaseKey || !supabaseUrl.startsWith('http')) {
+        return response
+    }
+
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabaseUrl,
+        supabaseKey,
         {
             cookies: {
                 get(name: string) {
@@ -67,9 +74,6 @@ export async function proxy(request: NextRequest) {
 
     // Admin check (simple version)
     if (isAdmin && user?.email !== 'admin@apex.com') {
-        // In a real app, you'd check the 'role' in the profiles table
-        // but middleware can't easily fetch DB data without more setup.
-        // For now, this is a placeholder check.
         // Mock auth bypass: return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
