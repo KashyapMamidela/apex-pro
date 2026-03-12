@@ -1,62 +1,51 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import Link from 'next/link'
+
+const links = {
+    Product: ['Features', 'Pricing', 'Changelog', 'Roadmap'],
+    Company: ['About', 'Blog', 'Careers'],
+    Support: ['Help Center', 'Contact', 'Privacy', 'Terms'],
+}
 
 export default function Footer() {
     return (
-        <footer className="border-t border-border-main pt-16 pb-8 px-6 md:px-16 lg:px-24">
-            <div className="max-w-[1400px] mx-auto">
-                {/* Top row */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-                    <div className="md:col-span-2">
-                        <div className="font-impact text-[2rem] tracking-[5px] text-apex-accent mb-4">APEX</div>
-                        <p className="text-apex-muted text-[0.8rem] leading-[1.8] max-w-xs">
-                            The most advanced AI fitness system for South Indian athletes. Train smarter, eat precisely, and rise through the ranks.
+        <footer className="border-t border-white/6 bg-surface/40 py-16 px-6">
+            <div className="max-w-6xl mx-auto">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+                    {/* Brand */}
+                    <div className="col-span-2 md:col-span-1">
+                        <div className="font-impact text-[1.8rem] text-apex-accent tracking-[4px] mb-3">APEX</div>
+                        <p className="text-apex-dim text-[0.78rem] font-inter leading-relaxed max-w-[200px]">
+                            Science-backed fitness for serious athletes. Train. Eat. Dominate.
                         </p>
-                        <div className="flex items-center gap-3 mt-5">
-                            {[
-                                { label: '₿', href: '#' },
-                                { label: 'IG', href: '#' },
-                                { label: 'X', href: '#' },
-                            ].map((s, i) => (
-                                <a
-                                    key={i} href={s.href}
-                                    className="w-8 h-8 border border-border-sub flex items-center justify-center text-[0.65rem] font-mono text-apex-dim hover:border-apex-accent hover:text-apex-accent transition-all"
-                                >
-                                    {s.label}
-                                </a>
-                            ))}
+                    </div>
+
+                    {/* Link columns */}
+                    {Object.entries(links).map(([section, items]) => (
+                        <div key={section}>
+                            <div className="text-[0.65rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4">{section}</div>
+                            <ul className="space-y-2.5">
+                                {items.map(item => (
+                                    <li key={item}>
+                                        <a href="#" className="text-apex-dim text-[0.82rem] font-inter hover:text-apex-text transition-colors">
+                                            {item}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
-                    <div>
-                        <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4">Product</div>
-                        <ul className="space-y-2.5">
-                            {['Features', 'Pricing', 'How It Works', 'Changelog'].map(l => (
-                                <li key={l}>
-                                    <Link href="#" className="text-[0.8rem] text-apex-dim hover:text-apex-text transition-colors">{l}</Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4">Company</div>
-                        <ul className="space-y-2.5">
-                            {['About', 'Blog', 'Privacy', 'Terms', 'Support'].map(l => (
-                                <li key={l}>
-                                    <Link href="#" className="text-[0.8rem] text-apex-dim hover:text-apex-text transition-colors">{l}</Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Bottom row */}
-                <div className="border-t border-border-main pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
-                    <p className="text-[0.68rem] font-mono text-apex-dim uppercase tracking-wider">
-                        © {new Date().getFullYear()} Apex Performance Systems. All rights reserved.
+                <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/5 gap-4">
+                    <p className="text-apex-dim text-[0.72rem] font-inter">
+                        © 2025 Apex Pro. All rights reserved.
                     </p>
-                    <div className="text-[0.65rem] font-mono text-apex-dim">
-                        Built for India's elite athletes 🇮🇳
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-apex-accent animate-pulse" />
+                        <span className="text-apex-dim text-[0.72rem] font-mono">All systems operational</span>
                     </div>
                 </div>
             </div>

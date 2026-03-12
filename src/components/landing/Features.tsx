@@ -1,145 +1,118 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Activity, Target, Cpu, Users, Trophy, Zap, ArrowUpRight } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Brain, Zap, Target, BarChart3, Users, ShieldCheck } from 'lucide-react'
 
 const features = [
     {
-        icon: <Activity className="w-7 h-7" />,
-        n: '01',
-        name: 'Elite Workouts',
-        desc: 'Science-backed split programs — PPL, Upper/Lower, Full Body — fully adaptive to your equipment and level.',
-        detail: '450+ exercises · Video guides · Progressive overload tracking',
-        color: '#c8ff00',
+        icon: <Brain className="w-6 h-6" />,
+        title: 'AI Workout Engine',
+        desc: 'Personalized plans built from your body data, goal, and equipment. Adapts weekly based on progress.',
+        accent: '#FFD400',
     },
     {
-        icon: <Target className="w-7 h-7" />,
-        n: '02',
-        name: 'AI Diet Engine',
-        desc: 'Precision South Indian meal plans — from Idli to Chicken Curry — calibrated to your exact TDEE and macros.',
-        detail: '7-day rotating plans · Calorie barometer · Custom food logging',
-        color: '#ff9d00',
+        icon: <Target className="w-6 h-6" />,
+        title: 'Precision Nutrition',
+        desc: 'Calorie and macro targets calculated to the gram. South Indian meal plans included.',
+        accent: '#00d4ff',
     },
     {
-        icon: <Cpu className="w-7 h-7" />,
-        n: '03',
-        name: 'Streak System',
-        desc: 'AI-powered gym attendance verification via photo analysis. Keep your streak, earn XP, level up your rank.',
-        detail: 'Gemini Vision AI · Daily check-in · Badge unlocks',
-        color: '#00d4ff',
+        icon: <BarChart3 className="w-6 h-6" />,
+        title: 'Progress Tracking',
+        desc: 'Log every set, track PRs, visualize strength curves over time. Built-in body metrics.',
+        accent: '#22c55e',
     },
     {
-        icon: <Users className="w-7 h-7" />,
-        n: '04',
-        name: 'Community',
-        desc: 'Find athletes, follow their progress, react to PRs. Social accountability that actually drives results.',
-        detail: 'Activity feed · Follow system · Group challenges',
-        color: '#9d4edd',
+        icon: <Zap className="w-6 h-6" />,
+        title: 'XP & Leveling',
+        desc: 'Complete workouts to earn XP. Level up from Rookie to Elite. Stay motivated every session.',
+        accent: '#ff9d00',
     },
     {
-        icon: <Trophy className="w-7 h-7" />,
-        n: '05',
-        name: 'XP & Ranking',
-        desc: 'A 6-tier progression system from Beginner to Elite. Every workout, meal, and streak earns you points.',
-        detail: 'Beginner → Rookie → Amateur → Pro → Elite',
-        color: '#ffd700',
+        icon: <Users className="w-6 h-6" />,
+        title: 'Community Feed',
+        desc: "Share PRs, post progress photos, react to your crew's achievements. Real accountability.",
+        accent: '#9d4edd',
     },
     {
-        icon: <Zap className="w-7 h-7" />,
-        n: '06',
-        name: 'Apex Engine',
-        desc: 'The dashboard that makes elite performance feel simple. Track everything in one cinematic interface.',
-        detail: 'Bento grid · Real-time rings · Progress analytics',
-        color: '#ff4545',
+        icon: <ShieldCheck className="w-6 h-6" />,
+        title: 'Science-Backed',
+        desc: 'Every program is grounded in exercise science. Progressive overload. Proper rest periods.',
+        accent: '#ff4545',
     },
 ]
 
+const card = {
+    hidden: { opacity: 0, y: 32 },
+    show: { opacity: 1, y: 0 },
+}
+
 export default function Features() {
-    const [hovered, setHovered] = useState<number | null>(null)
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, i: number) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
-    }
-
     return (
-        <section id="features" className="py-28 px-6 md:px-16 lg:px-24">
-            {/* Header */}
-            <div className="max-w-[1400px] mx-auto mb-16">
-                <div className="text-[0.6rem] font-mono tracking-[4px] text-apex-accent uppercase mb-4">Core System</div>
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <h2 className="font-impact text-[clamp(2.5rem,6vw,5.5rem)] leading-[0.9] uppercase">
-                        ARCHITECTED FOR<br />
-                        <span className="text-apex-accent">DOMINATION</span>
-                    </h2>
-                    <p className="text-apex-muted text-[0.88rem] leading-[1.75] max-w-xs">
-                        Every feature engineered with one goal: getting you to your peak physique, faster than anything else.
-                    </p>
-                </div>
-            </div>
+        <section id="features" className="relative py-28 px-6 overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 bg-surface/30" />
 
-            {/* Feature grid */}
-            <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {features.map((feat, i) => (
-                    <div
-                        key={i}
-                        className="relative bg-card rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 border border-border-main/60"
-                        onMouseEnter={() => setHovered(i)}
-                        onMouseLeave={() => setHovered(null)}
-                        onMouseMove={e => handleMouseMove(e, i)}
-                        style={{ background: hovered === i ? `radial-gradient(circle 200px at ${mousePos.x}px ${mousePos.y}px, ${feat.color}10, var(--color-card))` : undefined }}
-                    >
-
-                        {/* Hover glow spot that follows mouse */}
-                        {hovered === i && (
-                            <div
-                                className="absolute pointer-events-none rounded-full blur-3xl opacity-20 transition-none"
-                                style={{
-                                    width: '200px', height: '200px',
-                                    left: mousePos.x - 100,
-                                    top: mousePos.y - 100,
-                                    background: feat.color,
-                                }}
-                            />
-                        )}
-
-                        {/* Top row */}
-                        <div className="flex items-start justify-between mb-8">
-                            <div
-                                className="w-12 h-12 flex items-center justify-center transition-all duration-300"
-                                style={{
-                                    background: hovered === i ? `${feat.color}20` : 'var(--color-surface-2)',
-                                    color: hovered === i ? feat.color : 'var(--color-apex-muted)',
-                                    border: `1px solid ${hovered === i ? `${feat.color}44` : 'transparent'}`,
-                                }}
-                            >
-                                {feat.icon}
-                            </div>
-                            <span className="font-mono text-[0.65rem] text-apex-dim opacity-50 group-hover:opacity-100 transition-opacity">{feat.n}</span>
-                        </div>
-
-                        <h3 className="font-display text-[1.35rem] font-black uppercase tracking-wide mb-3 group-hover:text-apex-text transition-colors">
-                            {feat.name}
-                        </h3>
-                        <p className="text-apex-muted text-[0.83rem] leading-[1.7] mb-5">{feat.desc}</p>
-
-                        <div className="text-[0.65rem] font-mono text-apex-dim border-t border-border-main/50 pt-4 group-hover:text-apex-muted transition-colors">
-                            {feat.detail}
-                        </div>
-
-                        {/* Arrow icon on hover */}
-                        <div className="absolute top-5 right-5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                            <ArrowUpRight className="w-4 h-4" style={{ color: feat.color }} />
-                        </div>
-
-                        {/* Bottom accent line */}
-                        <div
-                            className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500"
-                            style={{ background: feat.color }}
-                        />
+            <div className="relative z-10 max-w-6xl mx-auto">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.55 }}
+                    className="text-center mb-16"
+                >
+                    <div className="text-[0.65rem] font-mono tracking-[3px] text-apex-accent uppercase mb-3">
+                        Everything you need
                     </div>
-                ))}
+                    <h2 className="font-display text-[2.8rem] md:text-[3.5rem] font-black text-apex-text leading-tight mb-4">
+                        Built for{' '}
+                        <span className="text-apex-accent">Serious Athletes</span>
+                    </h2>
+                    <p className="text-apex-muted text-[1rem] font-inter max-w-lg mx-auto leading-relaxed">
+                        Not another generic fitness app. Apex adapts to you — your body, your schedule, your food.
+                    </p>
+                </motion.div>
+
+                {/* Cards grid */}
+                <motion.div
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ staggerChildren: 0.09 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                >
+                    {features.map(({ icon, title, desc, accent }) => (
+                        <motion.div
+                            key={title}
+                            variants={card}
+                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            whileHover={{ y: -5, scale: 1.01 }}
+                            className="relative glass p-6 rounded-2xl group cursor-default overflow-hidden"
+                        >
+                            {/* Hover glow */}
+                            <div
+                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"
+                                style={{ background: `radial-gradient(circle at 30% 30%, ${accent}12 0%, transparent 70%)` }}
+                            />
+
+                            {/* Icon */}
+                            <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110"
+                                style={{ background: `${accent}18`, color: accent }}
+                            >
+                                {icon}
+                            </div>
+
+                            <h3 className="font-display text-[1.05rem] font-bold text-apex-text mb-2">
+                                {title}
+                            </h3>
+                            <p className="text-apex-muted text-[0.82rem] font-inter leading-relaxed">
+                                {desc}
+                            </p>
+                        </motion.div>
+                    ))}
+                </motion.div>
             </div>
         </section>
     )

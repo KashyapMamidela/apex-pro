@@ -1,159 +1,99 @@
 'use client'
 
-import { useState } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Check, Lock, ArrowRight } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 const plans = [
     {
-        n: 'CORE',
+        name: 'Free',
         price: '₹0',
-        per: 'Forever Free',
-        feats: [
-            { text: 'Full Workout Library', locked: false },
-            { text: 'Calorie Barometer', locked: false },
-            { text: '7-Day Meal Plan', locked: false },
-            { text: 'Community Access', locked: true },
-            { text: 'AI Streak Verification', locked: true },
-            { text: 'Elite Forge', locked: true },
-        ],
-        featured: false,
-        color: '#4ade80',
+        period: 'forever',
+        desc: 'Get started and see what Apex can do.',
+        accent: '#888888',
+        features: ['1 AI workout plan', 'Basic nutrition targets', 'Community access', '7-day streak tracking'],
         cta: 'Start Free',
+        href: '/signup',
+        highlight: false,
     },
     {
-        n: 'PRO',
-        price: '₹799',
-        per: 'per month',
-        badge: 'MOST POPULAR',
-        feats: [
-            { text: 'Everything in Core', locked: false },
-            { text: 'AI Streak Photo Verification', locked: false },
-            { text: 'Community + Social Feed', locked: false },
-            { text: 'Rotating Weekly Plans', locked: false },
-            { text: 'Priority Support', locked: false },
-            { text: 'Elite Forge (coming soon)', locked: true },
-        ],
-        featured: true,
-        color: '#c8ff00',
-        cta: 'Go Pro Now',
+        name: 'Pro',
+        price: '₹499',
+        period: 'per month',
+        desc: 'Full access for serious athletes.',
+        accent: '#FFD400',
+        features: ['Unlimited AI plans', 'Full nutrition plans + meals', 'Progress charts & analytics', 'XP & ranking system', 'Priority support', 'Plan adapts weekly'],
+        cta: 'Get Pro',
+        href: '/signup',
+        highlight: true,
     },
     {
-        n: 'ELITE',
-        price: '₹2,499',
-        per: 'per month',
-        feats: [
-            { text: 'Everything in Pro', locked: false },
-            { text: 'Custom 1-on-1 Coaching', locked: false },
-            { text: 'Full Metabolic Screening', locked: false },
-            { text: 'Elite Forge Access', locked: false },
-            { text: 'Private Mastermind Group', locked: false },
-            { text: 'Unlimited AI Diet Adjustments', locked: false },
-        ],
-        featured: false,
-        color: '#ff9d00',
-        cta: 'Apply Now',
+        name: 'Annual',
+        price: '₹3,999',
+        period: 'per year (save 33%)',
+        desc: 'Best value for committed athletes.',
+        accent: '#ff9d00',
+        features: ['Everything in Pro', '2 months free', 'Early access to new features', 'Dedicated coach chat'],
+        cta: 'Get Annual',
+        href: '/signup',
+        highlight: false,
     },
 ]
 
 export default function Pricing() {
-    const [hovered, setHovered] = useState<number | null>(null)
-
     return (
-        <section id="pricing" className="py-28 px-6 md:px-16 lg:px-24 border-t border-border-main bg-surface/30">
-            <div className="max-w-[1400px] mx-auto">
-                <div className="text-[0.6rem] font-mono tracking-[4px] text-apex-accent uppercase mb-4">Membership</div>
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-                    <h2 className="font-impact text-[clamp(2.5rem,6vw,5rem)] leading-[0.9] uppercase">
-                        CHOOSE YOUR<br />
-                        <span className="text-apex-accent">TIER</span>
+        <section id="pricing" className="py-28 px-6 page-bg">
+            <div className="max-w-5xl mx-auto">
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center mb-16"
+                >
+                    <div className="text-[0.65rem] font-mono tracking-[3px] text-apex-accent uppercase mb-3">Pricing</div>
+                    <h2 className="font-display text-[2.8rem] md:text-[3.5rem] font-black text-apex-text leading-tight">
+                        Simple, <span className="text-apex-accent">Transparent</span> Pricing
                     </h2>
-                    <p className="text-apex-muted text-[0.88rem] max-w-xs leading-relaxed">
-                        Start free, upgrade when you're ready. Cancel anytime.
-                    </p>
-                </div>
+                </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {plans.map((plan, i) => (
-                        <div
-                            key={i}
-                            onMouseEnter={() => setHovered(i)}
-                            onMouseLeave={() => setHovered(null)}
-                            className={`relative transition-all duration-300 group ${plan.featured
-                                ? 'scale-[1.02]'
-                                : hovered === i ? '-translate-y-2' : ''
-                                }`}
+                    {plans.map(({ name, price, period, desc, accent, features, cta, href, highlight }, i) => (
+                        <motion.div
+                            key={name}
+                            initial={{ opacity: 0, y: 32 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            whileHover={{ y: -5 }}
+                            className={`relative glass p-7 rounded-2xl ${highlight ? 'shadow-xl' : ''}`}
                         >
-                            {plan.badge && (
-                                <div
-                                    className="absolute -top-[13px] left-1/2 -translate-x-1/2 text-bg text-[0.6rem] font-bold tracking-[2px] px-4 py-1 uppercase z-10"
-                                    style={{ background: plan.color }}
-                                >
-                                    {plan.badge}
+                            {highlight && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[0.6rem] font-mono uppercase tracking-[2px] bg-apex-accent text-black px-3 py-1 rounded-full font-bold">
+                                    Most Popular
                                 </div>
                             )}
-
-                            <div
-                                className={`relative h-full p-9 border overflow-hidden rounded-2xl ${plan.featured
-                                    ? 'border-apex-accent/60 bg-card shadow-2xl shadow-apex-accent/10'
-                                    : 'border-border-main bg-card hover:border-border-sub'
+                            <div className="mb-5">
+                                <div className="text-[0.65rem] font-mono tracking-[2px] uppercase mb-1" style={{ color: accent }}>{name}</div>
+                                <div className="font-display text-[2.2rem] font-black text-apex-text">{price}</div>
+                                <div className="text-apex-dim text-[0.7rem] font-mono">{period}</div>
+                                <p className="text-apex-muted text-[0.78rem] font-inter mt-2 leading-relaxed">{desc}</p>
+                            </div>
+                            <ul className="space-y-2.5 mb-6">
+                                {features.map(f => (
+                                    <li key={f} className="flex items-start gap-2.5 text-[0.8rem] font-inter text-apex-muted">
+                                        <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: accent }} />
+                                        {f}
+                                    </li>
+                                ))}
+                            </ul>
+                            <Link
+                                href={href}
+                                className={`block text-center py-3 rounded-xl text-[0.85rem] font-display font-bold transition-all ${highlight ? 'btn-primary' : 'btn-ghost'
                                     }`}
                             >
-                                {/* Subtle glow corner */}
-                                {plan.featured && (
-                                    <div className="absolute top-0 right-0 w-40 h-40 rounded-bl-full blur-3xl opacity-10 pointer-events-none" style={{ background: plan.color }} />
-                                )}
-
-                                {/* Plan label */}
-                                <div className="text-[0.6rem] font-mono tracking-[3px] uppercase mb-5" style={{ color: plan.color }}>
-                                    {plan.n} PLAN
-                                </div>
-
-                                {/* Price */}
-                                <div className="mb-6">
-                                    <div className="font-impact text-[3.5rem] leading-none text-apex-text">{plan.price}</div>
-                                    <div className="text-[0.7rem] text-apex-muted font-mono mt-1">{plan.per}</div>
-                                </div>
-
-                                {/* Features */}
-                                <ul className="space-y-3 mb-8 border-t border-border-main pt-6">
-                                    {plan.feats.map((feat, j) => (
-                                        <li key={j} className={`flex items-center gap-3 text-[0.82rem] ${feat.locked ? 'opacity-35' : ''}`}>
-                                            {feat.locked
-                                                ? <Lock className="w-3 h-3 shrink-0 text-apex-dim" />
-                                                : <div className="w-3 h-3 shrink-0 rounded-full flex items-center justify-center" style={{ background: `${plan.color}33`, color: plan.color }}>
-                                                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: plan.color }} />
-                                                </div>
-                                            }
-                                            <span className={feat.locked ? 'text-apex-dim' : 'text-apex-muted'}>{feat.text}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                {/* CTA */}
-                                <Link
-                                    href="/signup"
-                                    className="group/btn flex items-center justify-center gap-2 w-full py-3.5 text-[0.82rem] font-bold tracking-[2px] uppercase transition-all duration-200 border rounded-xl"
-                                    style={plan.featured
-                                        ? { background: plan.color, color: '#000', borderColor: plan.color }
-                                        : { background: 'transparent', color: plan.color, borderColor: `${plan.color}44` }
-                                    }
-                                    onMouseEnter={e => {
-                                        if (!plan.featured) {
-                                            (e.currentTarget as HTMLElement).style.background = `${plan.color}15`
-                                        }
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (!plan.featured) {
-                                            (e.currentTarget as HTMLElement).style.background = 'transparent'
-                                        }
-                                    }}
-                                >
-                                    {plan.cta}
-                                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
-                                </Link>
-                            </div>
-                        </div>
+                                {cta}
+                            </Link>
+                        </motion.div>
                     ))}
                 </div>
             </div>

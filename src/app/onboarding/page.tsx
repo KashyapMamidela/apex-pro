@@ -2,275 +2,356 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-    Target, Flame, Heart, Activity, Dumbbell, Home, Zap, Leaf,
-    ChevronRight, ChevronLeft, Check
-} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronRight, ChevronLeft, Check, Zap } from 'lucide-react'
 
+// ── Body type SVG illustrations ──────────────────────────────────────────────
+const EctomorphSVG = () => (
+    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
+        <ellipse cx="40" cy="22" rx="14" ry="14" fill="currentColor" opacity="0.9" />
+        {/* Neck */}
+        <rect x="36" y="36" width="8" height="10" rx="3" fill="currentColor" opacity="0.8" />
+        {/* Narrow torso */}
+        <path d="M28 46 L52 46 L50 95 L30 95 Z" fill="currentColor" opacity="0.85" />
+        {/* Left arm */}
+        <rect x="20" y="47" width="8" height="42" rx="4" fill="currentColor" opacity="0.8" />
+        {/* Right arm */}
+        <rect x="52" y="47" width="8" height="42" rx="4" fill="currentColor" opacity="0.8" />
+        {/* Slim waist connector */}
+        <rect x="30" y="88" width="20" height="10" rx="3" fill="currentColor" opacity="0.75" />
+        {/* Left leg */}
+        <rect x="30" y="97" width="9" height="50" rx="4" fill="currentColor" opacity="0.85" />
+        {/* Right leg */}
+        <rect x="41" y="97" width="9" height="50" rx="4" fill="currentColor" opacity="0.85" />
+    </svg>
+)
+
+const MesomorphSVG = () => (
+    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
+        <ellipse cx="40" cy="20" rx="16" ry="16" fill="currentColor" opacity="0.9" />
+        <rect x="35" y="36" width="10" height="9" rx="3" fill="currentColor" opacity="0.8" />
+        {/* V-taper torso — wider shoulders narrow waist */}
+        <path d="M20 45 L60 45 L53 95 L27 95 Z" fill="currentColor" opacity="0.9" />
+        {/* Thick arms */}
+        <rect x="11" y="46" width="10" height="40" rx="5" fill="currentColor" opacity="0.85" />
+        <rect x="59" y="46" width="10" height="40" rx="5" fill="currentColor" opacity="0.85" />
+        {/* Hips */}
+        <rect x="27" y="88" width="26" height="12" rx="4" fill="currentColor" opacity="0.8" />
+        {/* Legs */}
+        <rect x="27" y="99" width="11" height="48" rx="5" fill="currentColor" opacity="0.9" />
+        <rect x="42" y="99" width="11" height="48" rx="5" fill="currentColor" opacity="0.9" />
+    </svg>
+)
+
+const EndomorphSVG = () => (
+    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
+        <ellipse cx="40" cy="20" rx="18" ry="18" fill="currentColor" opacity="0.9" />
+        <rect x="35" y="38" width="10" height="8" rx="3" fill="currentColor" opacity="0.8" />
+        {/* Rounder torso */}
+        <path d="M16 46 L64 46 L62 98 L18 98 Z" fill="currentColor" opacity="0.88" />
+        {/* Round arms */}
+        <rect x="8" y="47" width="11" height="38" rx="5" fill="currentColor" opacity="0.8" />
+        <rect x="61" y="47" width="11" height="38" rx="5" fill="currentColor" opacity="0.8" />
+        {/* Wide hips */}
+        <rect x="18" y="91" width="44" height="14" rx="5" fill="currentColor" opacity="0.8" />
+        {/* Thicker legs */}
+        <rect x="20" y="104" width="14" height="44" rx="6" fill="currentColor" opacity="0.85" />
+        <rect x="46" y="104" width="14" height="44" rx="6" fill="currentColor" opacity="0.85" />
+    </svg>
+)
+
+// ── Step definitions ─────────────────────────────────────────────────────────
 const steps = [
     {
-        id: 'goal',
-        title: "WHAT'S YOUR\nMISSION?",
-        subtitle: 'Your goal shapes every workout and meal we create for you.',
-        options: [
-            { value: 'muscle_gain', label: 'Build Muscle', icon: <Dumbbell className="w-6 h-6" />, color: '#c8ff00', desc: 'Pack on lean mass' },
-            { value: 'fat_loss', label: 'Lose Fat', icon: <Flame className="w-6 h-6" />, color: '#ff4545', desc: 'Burn and shred' },
-            { value: 'maintain', label: 'Stay Fit', icon: <Heart className="w-6 h-6" />, color: '#00d4ff', desc: 'Maintain performance' },
-        ]
+        id: 'age', title: 'How old are you?', subtitle: 'Helps us calibrate training intensity and recovery.',
+        type: 'number', field: { key: 'age', label: 'Age', unit: 'years', min: 13, max: 80, placeholder: '25' },
     },
     {
-        id: 'stats',
-        title: 'YOUR BODY\nDATA',
-        subtitle: 'Used to calculate your precise calorie and protein targets.',
-        fields: [
-            { key: 'age', label: 'Age', unit: 'years', type: 'number', min: 13, max: 80 },
-            { key: 'height', label: 'Height', unit: 'cm', type: 'number', min: 140, max: 220 },
-            { key: 'weight', label: 'Body Weight', unit: 'kg', type: 'number', min: 30, max: 200 },
-        ]
+        id: 'gender', title: 'What\'s your gender?', subtitle: 'Affects calorie targets and hormonal considerations.',
+        type: 'options',
+        options: [
+            { value: 'male', label: 'Male', color: '#00d4ff', emoji: '♂' },
+            { value: 'female', label: 'Female', color: '#ff9d00', emoji: '♀' },
+            { value: 'other', label: 'Other', color: '#9d4edd', emoji: '⚧' },
+        ],
     },
     {
-        id: 'activity',
-        title: 'HOW ACTIVE\nARE YOU?',
-        subtitle: 'Be honest — this directly affects your calories.',
+        id: 'goal', title: 'What\'s your fitness goal?', subtitle: 'Your mission shapes every workout and meal we create.',
+        type: 'options',
         options: [
-            { value: 'low', label: 'Low', icon: <Activity className="w-6 h-6" />, color: '#ffd700', desc: 'Desk job, minimal movement' },
-            { value: 'moderate', label: 'Moderate', icon: <Zap className="w-6 h-6" />, color: '#ff9d00', desc: '3–4 workouts per week' },
-            { value: 'high', label: 'High', icon: <Flame className="w-6 h-6" />, color: '#ff4545', desc: 'Daily training, physical job' },
-        ]
+            { value: 'fat_loss', label: 'Lose Fat', color: '#ff4545', emoji: '🔥' },
+            { value: 'muscle', label: 'Build Muscle', color: '#FFD400', emoji: '💪' },
+            { value: 'strength', label: 'Improve Strength', color: '#ff9d00', emoji: '🏋️' },
+            { value: 'fitness', label: 'General Fitness', color: '#22c55e', emoji: '🏃' },
+        ],
     },
     {
-        id: 'diet',
-        title: 'DIET\nPREFERENCE',
-        subtitle: 'We\'ll build your South Indian meal plan around this.',
+        id: 'level', title: 'Experience level?', subtitle: 'Determines exercise complexity and progression speed.',
+        type: 'options',
         options: [
-            { value: 'veg', label: 'Vegetarian', icon: <Leaf className="w-6 h-6" />, color: '#4ade80', desc: 'Dal, paneer, sprouts' },
-            { value: 'non_veg', label: 'Non-Veg', icon: <Dumbbell className="w-6 h-6" />, color: '#ff9d00', desc: 'Chicken, fish, eggs' },
-        ]
+            { value: 'beginner', label: 'Beginner', color: '#22c55e', emoji: '🌱', desc: 'Less than 6 months' },
+            { value: 'intermediate', label: 'Intermediate', color: '#FFD400', emoji: '⚡', desc: '6 months — 2 years' },
+            { value: 'advanced', label: 'Advanced', color: '#ff4545', emoji: '🔺', desc: '2+ years training' },
+        ],
     },
     {
-        id: 'equipment',
-        title: 'YOUR GYM\nSETUP',
-        subtitle: 'We\'ll tailor your workouts to what you have access to.',
+        id: 'bodytype', title: 'Select your body type', subtitle: 'Choose the shape that best matches your natural build.',
+        type: 'bodytype',
         options: [
-            { value: 'full_gym', label: 'Full Gym', icon: <Dumbbell className="w-6 h-6" />, color: '#c8ff00', desc: 'Barbells, machines, cables' },
-            { value: 'dumbbells', label: 'Dumbbells', icon: <Activity className="w-6 h-6" />, color: '#00d4ff', desc: 'Home setup with weights' },
-            { value: 'home', label: 'Home/Bodyweight', icon: <Home className="w-6 h-6" />, color: '#9d4edd', desc: 'No equipment needed' },
-        ]
+            { value: 'ectomorph', label: 'Ectomorph', color: '#00d4ff', svg: EctomorphSVG, desc: 'Lean & long, hard to gain weight' },
+            { value: 'mesomorph', label: 'Mesomorph', color: '#FFD400', svg: MesomorphSVG, desc: 'Athletic build, gains muscle easily' },
+            { value: 'endomorph', label: 'Endomorph', color: '#ff9d00', svg: EndomorphSVG, desc: 'Wider frame, gains weight easily' },
+        ],
+    },
+    {
+        id: 'days', title: 'Workout days per week?', subtitle: 'Be realistic — consistency beats intensity.',
+        type: 'slider', field: { key: 'days', min: 2, max: 7 },
+    },
+    {
+        id: 'diet', title: 'Diet preference?', subtitle: 'We\'ll build your South Indian meal plan around this.',
+        type: 'options',
+        options: [
+            { value: 'veg', label: 'Vegetarian', color: '#22c55e', emoji: '🥗', desc: 'Dal, paneer, sprouts, tofu' },
+            { value: 'non_veg', label: 'Non-Veg', color: '#ff9d00', emoji: '🍗', desc: 'Chicken, fish, eggs included' },
+            { value: 'flex', label: 'Flexible', color: '#9d4edd', emoji: '🍽️', desc: 'Whatever works best' },
+        ],
     },
 ]
 
-// Gym-creative background: floating squat silhouette
-function GymWatermark() {
-    return (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-            <div className="absolute -right-20 top-1/2 -translate-y-1/2 opacity-[0.035]">
-                <svg width="400" height="500" viewBox="0 0 400 500" fill="white">
-                    {/* Squat silhouette */}
-                    <ellipse cx="200" cy="60" rx="35" ry="35" />
-                    <path d="M200 95 L180 180 L160 250 L130 320 L170 320 L190 260 L210 260 L230 320 L270 320 L240 250 L220 180 Z" />
-                    <rect x="60" y="200" width="280" height="18" rx="9" />
-                    <rect x="40" y="188" width="50" height="42" rx="8" />
-                    <rect x="310" y="188" width="50" height="42" rx="8" />
-                </svg>
-            </div>
-            <div className="absolute -left-16 bottom-1/4 opacity-[0.025] rotate-[-15deg]">
-                <svg width="200" height="50" viewBox="0 0 200 50" fill="white">
-                    <rect x="0" y="14" width="24" height="22" rx="4" />
-                    <rect x="24" y="18" width="14" height="14" rx="3" />
-                    <rect x="38" y="20" width="124" height="10" rx="5" />
-                    <rect x="162" y="18" width="14" height="14" rx="3" />
-                    <rect x="176" y="14" width="24" height="22" rx="4" />
-                </svg>
-            </div>
-        </div>
-    )
+const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 60 : -60, opacity: 0, scale: 0.97 }),
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -60 : 60, opacity: 0, scale: 0.97 }),
 }
 
 export default function OnboardingPage() {
     const router = useRouter()
     const [step, setStep] = useState(0)
+    const [dir, setDir] = useState(1)
     const [answers, setAnswers] = useState<Record<string, any>>({})
-    const [direction, setDirection] = useState<'fwd' | 'bwd'>('fwd')
-    const [animating, setAnimating] = useState(false)
 
-    const currentStep = steps[step]
+    const cur = steps[step]
     const isLast = step === steps.length - 1
-    const progress = ((step) / steps.length) * 100
-
-    const navigate = (dir: 'fwd' | 'bwd') => {
-        if (animating) return
-        setDirection(dir)
-        setAnimating(true)
-        setTimeout(() => {
-            if (dir === 'fwd') setStep(s => Math.min(s + 1, steps.length - 1))
-            else setStep(s => Math.max(s - 1, 0))
-            setAnimating(false)
-        }, 250)
-    }
+    const progress = ((step + 1) / steps.length) * 100
 
     const canContinue = () => {
-        if (currentStep.fields) {
-            return currentStep.fields.every(f => answers[f.key] && Number(answers[f.key]) > 0)
-        }
-        return !!answers[currentStep.id]
+        if (cur.type === 'number') return !!answers[cur.field!.key] && Number(answers[cur.field!.key]) > 0
+        if (cur.type === 'slider') return !!answers[cur.field!.key]
+        return !!answers[cur.id]
     }
 
-    const handleFinish = () => {
-        localStorage.setItem('apex_athlete_profile', JSON.stringify({
-            ...answers,
-            onboarded: true,
-        }))
-        router.push('/dashboard')
+    const go = (d: number) => {
+        if (d > 0 && !canContinue()) return
+        setDir(d)
+        setTimeout(() => setStep(s => s + d), 0)
+    }
+
+    const finish = () => {
+        localStorage.setItem('apex_athlete_profile', JSON.stringify({ ...answers, onboarded: true }))
+        router.push('/dashboard/profile')
     }
 
     return (
-        <div className="min-h-screen page-glass-bg flex flex-col items-center justify-center px-4 relative overflow-hidden">
-            <GymWatermark />
+        <div className="min-h-screen page-bg flex flex-col items-center justify-center px-4 relative overflow-hidden">
+            {/* Yellow glow */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] pointer-events-none"
+                style={{ background: 'radial-gradient(ellipse, rgba(255,212,0,0.05) 0%, transparent 70%)' }} />
 
-            {/* Progress dots + bar */}
-            <div className="fixed top-0 left-0 right-0 h-1 bg-surface-2 z-10">
-                <div
-                    className="h-full bg-apex-accent transition-all duration-500"
-                    style={{ width: `${progress}%` }}
+            {/* Progress bar */}
+            <div className="fixed top-0 left-0 right-0 h-1 bg-white/5 z-10">
+                <motion.div
+                    className="h-full bg-apex-accent"
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
                 />
             </div>
 
             {/* Brand */}
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 font-impact text-xl text-apex-accent tracking-[4px] z-10">
-                APEX
-            </div>
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 font-impact text-xl text-apex-accent tracking-[4px] z-10">APEX</div>
 
             {/* Step card */}
-            <div
-                className="w-full max-w-lg z-10"
-                style={{
-                    animation: animating
-                        ? 'none'
-                        : 'slide-up-onboard 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards',
-                    opacity: animating ? 0 : 1,
-                    transition: animating ? 'opacity 0.25s ease' : 'none',
-                }}
-            >
-                {/* Header */}
-                <div className="mb-8 text-center">
-                    <div className="text-[0.6rem] font-mono text-apex-accent tracking-[3px] uppercase mb-3">
-                        STEP {step + 1} OF {steps.length}
-                    </div>
-                    <h1 className="font-impact text-[3rem] leading-[0.92] tracking-tight text-apex-text whitespace-pre-line">
-                        {currentStep.title}
-                    </h1>
-                    <p className="text-apex-muted text-[0.85rem] font-grotesk mt-3 max-w-xs mx-auto leading-relaxed">
-                        {currentStep.subtitle}
-                    </p>
-                </div>
+            <div className="w-full max-w-lg z-10 mt-16">
+                <AnimatePresence mode="wait" custom={dir}>
+                    <motion.div
+                        key={step}
+                        custom={dir}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="text-[0.6rem] font-mono text-apex-accent tracking-[3px] uppercase mb-3">
+                                Step {step + 1} of {steps.length}
+                            </div>
+                            <h1 className="font-display text-[2.2rem] md:text-[2.6rem] font-black text-apex-text leading-tight mb-2">
+                                {cur.title}
+                            </h1>
+                            <p className="text-apex-muted text-[0.85rem] font-inter max-w-xs mx-auto leading-relaxed">
+                                {cur.subtitle}
+                            </p>
+                        </div>
 
-                {/* Options */}
-                {currentStep.options && (
-                    <div className={`grid gap-3 ${currentStep.options.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        {currentStep.options.map((opt) => {
-                            const selected = answers[currentStep.id] === opt.value
-                            return (
-                                <button
-                                    key={opt.value}
-                                    onClick={() => setAnswers(a => ({ ...a, [currentStep.id]: opt.value }))}
-                                    className={`flex items-center gap-4 p-5 border-2 text-left transition-all duration-200 rounded-2xl ${selected
-                                        ? 'border-[var(--opt-color)] bg-[var(--opt-color)]/10 scale-[1.01] shadow-lg'
-                                        : 'border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/7 backdrop-blur-sm'
-                                        }`}
-                                    style={{ '--opt-color': opt.color } as any}
-                                >
-                                    <div
-                                        className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors"
-                                        style={{ background: selected ? `${opt.color}22` : 'rgba(255,255,255,0.07)', color: selected ? opt.color : 'var(--color-apex-muted)' }}
-                                    >
-                                        {opt.icon}
-                                    </div>
-                                    <div>
-                                        <div className={`font-grotesk text-[1rem] font-bold tracking-wide ${selected ? '' : 'text-apex-text'}`}
-                                            style={selected ? { color: opt.color } : {}}
-                                        >
-                                            {opt.label}
-                                        </div>
-                                        <div className="text-apex-muted text-[0.72rem] mt-0.5">{opt.desc}</div>
-                                    </div>
-                                    {selected && (
-                                        <div className="ml-auto w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: opt.color }}>
-                                            <Check className="w-3 h-3 text-bg" />
-                                        </div>
-                                    )}
-                                </button>
-                            )
-                        })}
-                    </div>
-                )}
-
-
-                {/* Fields (stats step) */}
-                {currentStep.fields && (
-                    <div className="space-y-4">
-                        {currentStep.fields.map((f) => (
-                            <div key={f.key}>
-                                <label className="block text-[0.65rem] font-mono text-apex-muted uppercase tracking-[2px] mb-2">
-                                    {f.label}
-                                </label>
-                                <div className="flex gap-3 items-center">
+                        {/* Number input */}
+                        {cur.type === 'number' && cur.field && (
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="flex items-center gap-4 glass p-4 rounded-2xl">
                                     <input
                                         type="number"
-                                        min={f.min}
-                                        max={f.max}
-                                        value={answers[f.key] || ''}
-                                        onChange={e => setAnswers(a => ({ ...a, [f.key]: e.target.value }))}
-                                        className="input-glass flex-1 px-4 py-3.5 text-apex-text text-[1.1rem] font-syne font-bold"
-                                        placeholder={`e.g. ${f.min}`}
+                                        min={cur.field.min}
+                                        max={cur.field.max}
+                                        value={answers[cur.field.key] || ''}
+                                        onChange={e => setAnswers(a => ({ ...a, [cur.field!.key]: e.target.value }))}
+                                        placeholder={cur.field.placeholder}
+                                        className="input-glass w-36 px-5 py-4 text-[2rem] font-display font-black text-center"
                                     />
-                                    <span className="text-[0.75rem] font-mono text-apex-accent uppercase tracking-wider w-12 text-right">
-                                        {f.unit}
-                                    </span>
+                                    <span className="text-apex-accent font-mono text-[0.85rem] uppercase tracking-wider">{cur.field.unit}</span>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        )}
 
+                        {/* Slider (days) */}
+                        {cur.type === 'slider' && cur.field && (
+                            <div className="glass p-8 rounded-2xl text-center">
+                                <div className="font-display text-[4rem] font-black text-apex-accent mb-2">
+                                    {answers[cur.field.key] || cur.field.min}
+                                </div>
+                                <div className="text-apex-muted font-inter text-[0.85rem] mb-6">days per week</div>
+                                <input
+                                    type="range"
+                                    min={cur.field.min}
+                                    max={cur.field.max}
+                                    value={answers[cur.field.key] || cur.field.min}
+                                    onChange={e => setAnswers(a => ({ ...a, [cur.field!.key]: e.target.value }))}
+                                    className="w-full accent-apex-accent cursor-pointer"
+                                />
+                                <div className="flex justify-between text-apex-dim font-mono text-[0.7rem] mt-1">
+                                    <span>{cur.field.min}</span>
+                                    <span>{cur.field.max}</span>
+                                </div>
+                            </div>
+                        )}
 
-                {/* Nav buttons */}
-                <div className="flex gap-3 mt-8">
-                    {step > 0 && (
-                        <button
-                            onClick={() => navigate('bwd')}
-                            className="btn-glass-outline flex items-center gap-2 px-5 py-3.5 text-[0.8rem] font-grotesk font-medium"
-                        >
-                            <ChevronLeft className="w-4 h-4" /> Back
-                        </button>
-                    )}
-                    <button
-                        onClick={isLast ? handleFinish : () => navigate('fwd')}
-                        disabled={!canContinue()}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 font-grotesk font-bold text-[0.9rem] tracking-[2px] uppercase transition-all rounded-xl ${canContinue()
-                            ? 'btn-glass'
-                            : 'bg-surface-2 text-apex-dim cursor-not-allowed rounded-xl'
-                            }`}
-                    >
-                        {isLast ? 'Enter Apex' : 'Continue'}
-                        {!isLast && <ChevronRight className="w-4 h-4" />}
-                        {isLast && <Zap className="w-4 h-4" />}
-                    </button>
-                </div>
+                        {/* Regular option cards */}
+                        {cur.type === 'options' && (
+                            <div className={`grid gap-3 ${cur.options!.length === 2 ? 'grid-cols-2' : cur.options!.length === 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                {cur.options!.map(opt => {
+                                    const sel = answers[cur.id] === opt.value
+                                    return (
+                                        <motion.button
+                                            key={opt.value}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => setAnswers(a => ({ ...a, [cur.id]: opt.value }))}
+                                            className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${sel
+                                                    ? 'border-[var(--opt-c)] bg-[var(--opt-c)]/10 shadow-lg'
+                                                    : 'border-white/8 bg-white/3 hover:bg-white/5 hover:border-white/14'
+                                                }`}
+                                            style={{ '--opt-c': opt.color } as any}
+                                        >
+                                            <div
+                                                className="w-11 h-11 rounded-xl flex items-center justify-center text-[1.3rem] shrink-0"
+                                                style={{ background: sel ? `${opt.color}20` : 'rgba(255,255,255,0.07)' }}
+                                            >
+                                                {(opt as any).emoji}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-display font-bold text-[0.92rem]" style={{ color: sel ? opt.color : '#f5f5f5' }}>
+                                                    {opt.label}
+                                                </div>
+                                                {(opt as any).desc && (
+                                                    <div className="text-apex-dim text-[0.7rem] font-inter mt-0.5">{(opt as any).desc}</div>
+                                                )}
+                                            </div>
+                                            {sel && (
+                                                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: opt.color }}>
+                                                    <Check className="w-3 h-3 text-black" />
+                                                </div>
+                                            )}
+                                        </motion.button>
+                                    )
+                                })}
+                            </div>
+                        )}
 
-                {/* Step dots */}
-                <div className="flex items-center justify-center gap-2 mt-6">
-                    {steps.map((_, i) => (
-                        <div
-                            key={i}
-                            className="rounded-full transition-all duration-300"
-                            style={{
-                                width: i === step ? '20px' : '6px',
-                                height: '6px',
-                                background: i <= step ? 'var(--color-apex-accent)' : 'var(--color-border-sub)',
-                            }}
-                        />
-                    ))}
-                </div>
+                        {/* Body type cards */}
+                        {cur.type === 'bodytype' && (
+                            <div className="grid grid-cols-3 gap-4">
+                                {cur.options!.map(opt => {
+                                    const sel = answers[cur.id] === opt.value
+                                    const Svg = (opt as any).svg
+                                    return (
+                                        <motion.button
+                                            key={opt.value}
+                                            whileHover={{ scale: 1.04 }}
+                                            whileTap={{ scale: 0.96 }}
+                                            onClick={() => setAnswers(a => ({ ...a, [cur.id]: opt.value }))}
+                                            className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 ${sel
+                                                    ? 'border-[var(--opt-c)] bg-[var(--opt-c)]/12 shadow-lg'
+                                                    : 'border-white/8 bg-white/3 hover:bg-white/6'
+                                                }`}
+                                            style={{ '--opt-c': opt.color } as any}
+                                        >
+                                            <div
+                                                className="w-full h-28 mb-3"
+                                                style={{ color: sel ? opt.color : 'rgba(255,255,255,0.5)' }}
+                                            >
+                                                <Svg />
+                                            </div>
+                                            <div className="font-display font-bold text-[0.8rem]" style={{ color: sel ? opt.color : '#888' }}>
+                                                {opt.label}
+                                            </div>
+                                            <div className="text-apex-dim text-[0.6rem] font-inter mt-0.5 text-center leading-tight">
+                                                {(opt as any).desc}
+                                            </div>
+                                        </motion.button>
+                                    )
+                                })}
+                            </div>
+                        )}
+
+                        {/* Navigation */}
+                        <div className="flex gap-3 mt-8">
+                            {step > 0 && (
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                    onClick={() => go(-1)}
+                                    className="btn-ghost flex items-center gap-2 px-5 py-3.5 text-[0.85rem] font-inter rounded-xl"
+                                >
+                                    <ChevronLeft className="w-4 h-4" /> Back
+                                </motion.button>
+                            )}
+                            <motion.button
+                                whileHover={{ scale: canContinue() ? 1.02 : 1 }}
+                                whileTap={{ scale: canContinue() ? 0.97 : 1 }}
+                                onClick={isLast ? finish : () => go(1)}
+                                disabled={!canContinue()}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-display font-bold text-[0.92rem] transition-all ${canContinue() ? 'btn-primary' : 'bg-white/5 text-apex-dim cursor-not-allowed'
+                                    }`}
+                            >
+                                {isLast ? 'Enter Apex' : 'Continue'}
+                                {isLast ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            </motion.button>
+                        </div>
+
+                        {/* Dots */}
+                        <div className="flex items-center justify-center gap-2 mt-6">
+                            {steps.map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    animate={{
+                                        width: i === step ? 20 : 6,
+                                        background: i <= step ? '#FFD400' : '#333333',
+                                    }}
+                                    className="h-[6px] rounded-full"
+                                    transition={{ duration: 0.3 }}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
         </div>
     )

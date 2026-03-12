@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import SquatLoader from '@/components/ui/SquatLoader'
+import { motion } from 'framer-motion'
+import { ChevronLeft } from 'lucide-react'
+import DeadliftLoader from '@/components/ui/DeadliftLoader'
 
 export default function SignupPage() {
     const [email, setEmail] = useState('')
@@ -27,30 +28,28 @@ export default function SignupPage() {
                 setError('Please fill out all required fields')
                 setLoading(false)
             }
-        }, 1200)
+        }, 1600)
     }
 
-    const handleGoogleSignup = async () => {
+    const handleGoogle = () => {
         setGoogleLoading(true)
-        setError(null)
-        setTimeout(() => { router.push('/onboarding') }, 1200)
+        setTimeout(() => { router.push('/onboarding') }, 1600)
     }
 
     if (loading || googleLoading) {
-        return <SquatLoader message={googleLoading ? 'Connecting Google...' : 'Creating your account...'} />
+        return <DeadliftLoader message={googleLoading ? 'Connecting with Google...' : 'Creating your account...'} />
     }
 
     return (
-        <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 page-glass-bg text-apex-text overflow-hidden">
+        <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-bg text-apex-text">
 
-            {/* Brand Panel */}
-            <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
-                {/* Animated background glow blobs */}
-                <div className="absolute top-1/3 left-1/4 w-72 h-72 rounded-full blur-[120px] opacity-10 pointer-events-none" style={{ background: '#c8ff00' }} />
-                <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full blur-[80px] opacity-06 pointer-events-none" style={{ background: '#00d4ff' }} />
+            {/* LEFT panel */}
+            <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-surface border-r border-white/5">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(255,212,0,0.07) 0%, transparent 70%)' }} />
 
                 {/* Deadlift watermark */}
-                <div className="absolute bottom-0 right-0 opacity-[0.05] pointer-events-none">
+                <div className="absolute bottom-0 right-0 opacity-[0.04] pointer-events-none">
                     <svg width="340" height="420" viewBox="0 0 320 400" fill="white">
                         <ellipse cx="160" cy="60" rx="35" ry="35" />
                         <path d="M160 95 L140 200 L115 300 L145 300 L158 240 L162 240 L175 300 L205 300 L180 200 Z" />
@@ -60,56 +59,49 @@ export default function SignupPage() {
                     </svg>
                 </div>
 
-                {/* Logo */}
-                <div className="relative z-10">
-                    <span className="font-impact text-2xl text-apex-accent tracking-[5px]">APEX</span>
-                </div>
+                <span className="relative z-10 font-impact text-2xl text-apex-accent tracking-[5px]">APEX</span>
 
-                {/* Main copy */}
                 <div className="relative z-10">
                     <div className="text-[0.6rem] font-mono tracking-[4px] text-apex-accent uppercase mb-4">Elite Performance System</div>
-                    <h1 className="font-impact text-[64px] leading-[0.88] uppercase mb-5">
-                        FORGE YOUR<br /><em className="text-apex-accent not-italic">APEX</em>
+                    <h1 className="font-display text-[3.2rem] font-black leading-[0.9] mb-5">
+                        Forge Your<br /><span className="text-apex-accent">Apex</span>
                     </h1>
-                    <p className="text-apex-muted text-[0.88rem] max-w-xs leading-relaxed">
-                        Join 50K+ athletes building elite bodies with AI-powered science and precision South Indian nutrition.
+                    <p className="text-apex-muted text-[0.88rem] font-inter max-w-xs leading-relaxed">
+                        Join 50K+ athletes building elite bodies with AI-powered science and precision nutrition.
                     </p>
                 </div>
 
-                {/* Stats */}
                 <div className="relative z-10 flex gap-10">
-                    {[['24/7', 'Elite Support'], ['AI', 'Precision'], ['50K+', 'Athletes']].map(([num, label]) => (
-                        <div key={num}>
-                            <div className="font-impact text-[2rem] text-apex-accent">{num}</div>
-                            <div className="text-[0.58rem] tracking-[2px] text-apex-muted uppercase font-mono">{label}</div>
+                    {[['24/7', 'Elite Support'], ['AI', 'Precision'], ['50K+', 'Athletes']].map(([v, l]) => (
+                        <div key={v}>
+                            <div className="font-display text-[1.8rem] font-black text-apex-accent">{v}</div>
+                            <div className="text-[0.58rem] tracking-[2px] text-apex-muted uppercase font-mono mt-0.5">{l}</div>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Form Panel */}
-            <div className="flex flex-col items-center justify-center p-8 lg:p-14 overflow-y-auto">
+            {/* RIGHT — form */}
+            <motion.div
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center justify-center p-8 lg:p-14 overflow-y-auto"
+            >
                 <div className="w-full max-w-[420px]">
-                    <Link href="/" className="flex items-center gap-2 text-apex-muted text-[0.78rem] mb-10 hover:text-apex-text transition-colors font-grotesk">
+                    <Link href="/" className="flex items-center gap-2 text-apex-muted text-[0.78rem] mb-10 hover:text-apex-text transition-colors font-inter">
                         <ChevronLeft className="w-4 h-4" /> Back to Home
                     </Link>
 
-                    {/* Title */}
                     <div className="mb-8">
-                        <h2 className="font-satoshi text-[2.8rem] font-bold leading-[0.9] mb-2">
-                            Join the<br /><span className="text-apex-accent">Forge</span>
+                        <h2 className="font-display text-[2.4rem] font-black leading-[0.9] mb-2">
+                            Join the <span className="text-apex-accent">Forge</span>
                         </h2>
-                        <p className="text-apex-muted text-[0.82rem] font-dm-sans leading-relaxed">
-                            Quick sign up — we'll customize your plan right after.
-                        </p>
+                        <p className="text-apex-muted text-[0.82rem] font-inter">Quick sign up — customize your plan right after.</p>
                     </div>
 
-                    {/* Google Sign Up */}
-                    <button
-                        onClick={handleGoogleSignup}
-                        disabled={googleLoading}
-                        className="btn-glass-outline w-full flex items-center justify-center gap-3 py-3.5 mb-5 text-[0.85rem] font-grotesk font-medium"
-                    >
+                    {/* Google */}
+                    <button onClick={handleGoogle} className="btn-ghost w-full flex items-center justify-center gap-3 py-3.5 mb-5 text-[0.85rem] font-inter rounded-xl">
                         <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -120,43 +112,38 @@ export default function SignupPage() {
                     </button>
 
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="flex-1 h-px bg-border-main" />
+                        <div className="flex-1 h-px bg-white/8" />
                         <span className="text-[0.6rem] font-mono text-apex-dim uppercase tracking-wider">or email</span>
-                        <div className="flex-1 h-px bg-border-main" />
+                        <div className="flex-1 h-px bg-white/8" />
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-4">
                         {[
-                            { label: 'Athlete Name', type: 'text', placeholder: 'Full Name', value: fullName, setter: setFullName },
-                            { label: 'Email', type: 'email', placeholder: 'athlete@apex.com', value: email, setter: setEmail },
-                            { label: 'Password', type: 'password', placeholder: '••••••••', value: password, setter: setPassword },
-                        ].map(({ label, type, placeholder, value, setter }) => (
+                            { label: 'Full Name', type: 'text', ph: 'John Doe', val: fullName, set: setFullName },
+                            { label: 'Email', type: 'email', ph: 'athlete@apex.com', val: email, set: setEmail },
+                            { label: 'Password', type: 'password', ph: '••••••••', val: password, set: setPassword },
+                        ].map(({ label, type, ph, val, set }) => (
                             <div key={label} className="flex flex-col gap-1.5">
                                 <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">{label}</label>
-                                <input
-                                    type={type}
-                                    placeholder={placeholder}
-                                    value={value}
-                                    onChange={e => setter(e.target.value)}
-                                    required
-                                    className="input-glass w-full px-4 py-3.5 text-[0.88rem]"
+                                <input type={type} placeholder={ph} value={val}
+                                    onChange={e => set(e.target.value)} required
+                                    className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
                                 />
                             </div>
                         ))}
 
-                        {error && <p className="text-apex-danger text-[0.8rem] font-grotesk bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20">{error}</p>}
+                        {error && <p className="text-apex-danger text-[0.78rem] font-inter bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20">{error}</p>}
 
-                        <button type="submit" disabled={loading} className="btn-glass w-full py-4 text-[0.88rem] mt-2">
+                        <button type="submit" className="btn-primary w-full py-4 text-[0.9rem] rounded-xl mt-2">
                             Create Account →
                         </button>
                     </form>
 
-                    <p className="text-center mt-6 text-[0.78rem] text-apex-muted font-grotesk">
-                        Already an athlete?{' '}
-                        <Link href="/login" className="text-apex-accent hover:underline font-medium">Login</Link>
+                    <p className="text-center mt-6 text-[0.78rem] text-apex-muted font-inter">
+                        Already an athlete? <Link href="/login" className="text-apex-accent hover:underline font-semibold">Login</Link>
                     </p>
                 </div>
-            </div>
+            </motion.div>
         </div>
     )
 }
