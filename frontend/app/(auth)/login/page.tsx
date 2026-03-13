@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Shield } from 'lucide-react'
+import { login } from '../actions'
 import DeadliftLoader from '@/components/ui/DeadliftLoader'
 
 // Floating icons for left panel (same SVGs as Hero)
@@ -26,26 +27,25 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setError(null)
-        setTimeout(() => {
-            if (email && password) {
-                window.location.href = '/dashboard'
-            } else {
-                setError('Please enter valid credentials')
-                setLoading(false)
-            }
-        }, 1600)
-    }
+    const [pending, setPending] = useState(false)
 
     const handleGoogle = () => {
-        setLoading(true)
-        setTimeout(() => { router.push('/dashboard') }, 1600)
+        alert('Google login coming soon')
     }
 
-    if (loading) return <DeadliftLoader message="Entering the Forge..." />
+    // Handle form action directly for native FormData support
+    const handleLoginAction = async (formData: FormData) => {
+        setPending(true)
+        setError(null)
+        try {
+            await login(formData)
+        } catch (e: any) {
+            setError(e.message || 'Login failed')
+            setPending(false)
+        }
+    }
+
+    if (pending) return <DeadliftLoader message="Entering the Forge..." />
 
     return (
         <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-bg text-apex-text">
@@ -134,14 +134,14 @@ export default function LoginPage() {
                         <div className="flex-1 h-px bg-white/8" />
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form action={handleLoginAction} className="space-y-4">
                         {[
-                            { label: 'Email', type: 'email', placeholder: 'athlete@apex.com', value: email, set: setEmail },
-                            { label: 'Password', type: 'password', placeholder: '••••••••', value: password, set: setPassword },
-                        ].map(({ label, type, placeholder, value, set }) => (
+                            { label: 'Email', name: 'email', type: 'email', placeholder: 'athlete@apex.com', value: email, set: setEmail },
+                            { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••', value: password, set: setPassword },
+                        ].map(({ label, name, type, placeholder, value, set }) => (
                             <div key={label} className="flex flex-col gap-1.5">
                                 <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">{label}</label>
-                                <input type={type} placeholder={placeholder} value={value}
+                                <input name={name} type={type} placeholder={placeholder} value={value}
                                     onChange={e => set(e.target.value)} required
                                     className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
                                 />

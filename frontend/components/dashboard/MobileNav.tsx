@@ -28,7 +28,7 @@ export default function MobileNav() {
     const isForgeActive = pathname === '/dashboard/forge'
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[150] bg-surface border-t border-border-main">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[150] glass-dark !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 pb-safe">
             <div className="flex items-end relative h-16">
 
                 {/* Left 2 items */}

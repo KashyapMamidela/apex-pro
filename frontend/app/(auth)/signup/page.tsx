@@ -16,27 +16,28 @@ export default function SignupPage() {
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
 
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
+    const [pending, setPending] = useState(false)
+
+    // Handle form action directly for native FormData support
+    const handleSignupAction = async (formData: FormData) => {
+        setPending(true)
         setError(null)
-        setTimeout(() => {
-            if (email && password && fullName) {
-                localStorage.setItem('apex_athlete_name', fullName)
-                router.push('/onboarding')
-            } else {
-                setError('Please fill out all required fields')
-                setLoading(false)
-            }
-        }, 1600)
+        try {
+            // Need to import this action first!
+            const { signup } = await import('../actions')
+            await signup(formData)
+        } catch (e: any) {
+            setError(e.message || 'Signup failed')
+            setPending(false)
+        }
     }
 
     const handleGoogle = () => {
-        setGoogleLoading(true)
-        setTimeout(() => { router.push('/onboarding') }, 1600)
+        // TODO: Implement Google OAuth
+        alert('Google signup coming soon')
     }
 
-    if (loading || googleLoading) {
+    if (pending || googleLoading) {
         return <DeadliftLoader message={googleLoading ? 'Connecting with Google...' : 'Creating your account...'} />
     }
 
@@ -117,15 +118,15 @@ export default function SignupPage() {
                         <div className="flex-1 h-px bg-white/8" />
                     </div>
 
-                    <form onSubmit={handleSignup} className="space-y-4">
+                    <form action={handleSignupAction} className="space-y-4">
                         {[
-                            { label: 'Full Name', type: 'text', ph: 'John Doe', val: fullName, set: setFullName },
-                            { label: 'Email', type: 'email', ph: 'athlete@apex.com', val: email, set: setEmail },
-                            { label: 'Password', type: 'password', ph: '••••••••', val: password, set: setPassword },
-                        ].map(({ label, type, ph, val, set }) => (
+                            { label: 'Full Name', name: 'name', type: 'text', ph: 'John Doe', val: fullName, set: setFullName },
+                            { label: 'Email', name: 'email', type: 'email', ph: 'athlete@apex.com', val: email, set: setEmail },
+                            { label: 'Password', name: 'password', type: 'password', ph: '••••••••', val: password, set: setPassword },
+                        ].map(({ label, name, type, ph, val, set }) => (
                             <div key={label} className="flex flex-col gap-1.5">
                                 <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">{label}</label>
-                                <input type={type} placeholder={ph} value={val}
+                                <input name={name} type={type} placeholder={ph} value={val}
                                     onChange={e => set(e.target.value)} required
                                     className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
                                 />

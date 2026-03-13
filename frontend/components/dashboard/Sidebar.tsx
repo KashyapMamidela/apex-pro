@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -37,7 +37,7 @@ export default function Sidebar() {
     const [xpLevel, setXpLevel] = useState({ label: 'Rookie', xp: 850, max: 1500, color: '#00d4ff' })
 
     useEffect(() => {
-        if (!supabase) return
+        const supabase = createClient()
         supabase.auth.getUser().then(({ data }: any) => {
             if (data?.user) setUser(data.user)
         })
@@ -47,7 +47,8 @@ export default function Sidebar() {
     useEffect(() => { setMobileOpen(false) }, [pathname])
 
     const handleLogout = async () => {
-        if (supabase) await supabase.auth.signOut()
+        const supabase = createClient()
+        await supabase.auth.signOut()
         router.push('/')
     }
 

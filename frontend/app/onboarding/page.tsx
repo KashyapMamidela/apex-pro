@@ -146,7 +146,32 @@ export default function OnboardingPage() {
         setTimeout(() => setStep(s => s + d), 0)
     }
 
-    const finish = () => {
+    const finish = async () => {
+        // Save to Supabase instead of localStorage
+        const { createClient } = await import('@/utils/supabase/client')
+        const supabase = createClient()
+        
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                // Determine workout preference from existing steps if not explicit
+                const workout_type = answers.workout_type || 'gym'
+                const body_type = answers.bodytype
+                
+                await supabase.from('profiles').update({
+                    age: Number(answers.age),
+                    gender: answers.gender,
+                    goal: answers.goal,
+                    experience_level: answers.level,
+                    body_type: body_type,
+                    is_profile_complete: true
+                }).eq('id', user.id)
+            }
+        } catch (e) {
+            console.error('Failed to save profile', e)
+        }
+
+        // Just in case, still keep the local name for immediate UI feedback if needed
         localStorage.setItem('apex_athlete_profile', JSON.stringify({ ...answers, onboarded: true }))
         router.push('/dashboard/profile')
     }

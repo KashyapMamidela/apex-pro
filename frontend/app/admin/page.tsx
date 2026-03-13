@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { LogOut, Users, Dumbbell, Utensils, Zap, Trash2 } from 'lucide-react'
 
@@ -28,6 +28,7 @@ export default function AdminDashboard() {
 
     const fetchData = useCallback(async () => {
         setLoading(true)
+        const supabase = createClient()
         // In a real app, these would be separate queries or a view
         // For now, we fetch from the tables
         const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
@@ -65,7 +66,8 @@ export default function AdminDashboard() {
         }
 
         if (!confirm(`Are you sure you want to delete ${email}?`)) return
-
+        
+        const supabase = createClient()
         const { error } = await supabase.auth.admin.deleteUser(id)
         if (error) {
             alert(error.message)
@@ -75,6 +77,7 @@ export default function AdminDashboard() {
     }, [fetchData])
 
     const handleLogout = async () => {
+        const supabase = createClient()
         await supabase.auth.signOut()
         router.push('/')
     }
