@@ -35,12 +35,12 @@
   /* ════════════════════════════════════════
      TYPOGRAPHY
   ════════════════════════════════════════ */
-  --font-display: var(--font-poppins);
+  --font-display: 'Poppins';
   /* headings */
-  --font-body: var(--font-inter);
+  --font-body: 'Inter';
   /* body text */
-  --font-mono: var(--font-space-mono);
-  --font-impact: var(--font-bebas-neue);
+  --font-mono: 'Space Mono';
+  --font-impact: 'Bebas Neue';
 
   /* ════════════════════════════════════════
      BORDER RADIUS

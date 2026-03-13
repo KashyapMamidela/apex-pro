@@ -17,6 +17,7 @@ import {
     X,
     Menu,
     Zap,
+    Activity,
 } from 'lucide-react'
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
     { name: 'WORKOUTS', icon: <Dumbbell className="w-4 h-4" />, href: '/dashboard/workouts' },
     { name: 'NUTRITION', icon: <Utensils className="w-4 h-4" />, href: '/dashboard/nutrition' },
     { name: 'PROGRESS', icon: <TrendingUp className="w-4 h-4" />, href: '/dashboard/progress' },
+    { name: 'TRACKER', icon: <Activity className="w-4 h-4" />, href: '/dashboard/tracker' },
     { name: 'COMMUNITY', icon: <Users className="w-4 h-4" />, href: '/dashboard/community' },
     { name: 'PROFILE', icon: <User className="w-4 h-4" />, href: '/dashboard/profile' },
     { name: 'SETTINGS', icon: <Settings className="w-4 h-4" />, href: '/dashboard/settings' },

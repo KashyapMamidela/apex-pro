@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fontsource/bebas-neue": "^5.2.7",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/poppins": "^5.2.7",
+    "@fontsource/space-mono": "^5.2.9",
     "@google/generative-ai": "^0.24.1",
     "@react-spring/three": "^10.0.3",
     "@react-three/drei": "^10.7.7",

@@ -34,16 +34,16 @@ export default function DashboardOverview() {
     const [profile, setProfile] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [completedSets, setCompletedSets] = useState<Record<number, boolean[]>>({})
+    const [xp, setXp] = useState(0)
+    const [streakDays, setStreakDays] = useState(0)
+    const [caloriesConsumed, setCaloriesConsumed] = useState(0)
 
     const today = new Date().toLocaleDateString('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     })
 
-    const xp = 850
     const level = getLevel(xp)
     const xpPct = Math.min(100, Math.round((xp / level.next) * 100))
-    const streakDays = 6
-    const caloriesConsumed = 1840
     const caloriesTarget = 2400
     const caloriePct = Math.min(100, Math.round((caloriesConsumed / caloriesTarget) * 100))
 
@@ -66,6 +66,48 @@ export default function DashboardOverview() {
             }
             setLoading(false)
         }, 600)
+
+        const fetchDashboardData = async () => {
+            try {
+                const { createClient } = await import('@/utils/supabase/client')
+                const supabase = createClient()
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) return
+
+                const { data: stats } = await supabase
+                    .from('user_stats')
+                    .select('total_xp, current_streak')
+                    .eq('user_id', user.id)
+                    .single()
+                
+                if (stats) {
+                    setXp(stats.total_xp || 0)
+                    setStreakDays(stats.current_streak || 0)
+                }
+
+                const todayStart = new Date()
+                todayStart.setHours(0, 0, 0, 0)
+                const todayEnd = new Date()
+                todayEnd.setHours(23, 59, 59, 999)
+
+                const { data: nutrition } = await supabase
+                    .from('nutrition_logs')
+                    .select('calories')
+                    .eq('user_id', user.id)
+                    .gte('logged_at', todayStart.toISOString())
+                    .lte('logged_at', todayEnd.toISOString())
+
+                if (nutrition) {
+                    const totalCals = nutrition.reduce((sum, log) => sum + (log.calories || 0), 0)
+                    setCaloriesConsumed(totalCals)
+                }
+            } catch (err) {
+                console.error("Error fetching stats:", err)
+            }
+        }
+        
+        fetchDashboardData()
+
         return () => clearTimeout(timer)
     }, [])
 
