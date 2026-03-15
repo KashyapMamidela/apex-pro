@@ -10,7 +10,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://apex-pro.vercel.app"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://apexpro.fit",
+        "https://www.apexpro.fit",
+        "https://apex-pro.vercel.app",
+        "https://*.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

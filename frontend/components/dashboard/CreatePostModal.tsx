@@ -19,7 +19,7 @@ export default function CreatePostModal({ isOpen, onClose }: { isOpen: boolean, 
 
             if (user) {
                 await supabase.from('community_posts').insert({
-                    author_id: user.id,
+                    user_id: user.id,
                     content: content,
                     post_type: 'general'
                 })

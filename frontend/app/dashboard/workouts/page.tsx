@@ -37,23 +37,36 @@ export default function WorkoutsPage() {
 
     const fetchProfile = async () => {
         setLoading(true)
-        const saved = localStorage.getItem('apex_athlete_profile')
-        if (saved) {
-            try {
-                const data = JSON.parse(saved)
-                // Map UI display strings back to engine keys
-                const mappedProfile = {
-                    full_name: data.name || 'ATHLETE',
-                    goal: (data.goal || 'Muscle Gain').toLowerCase().replace(' ', '_'),
-                    level: (data.level || 'Intermediate').toLowerCase(),
-                    equipment: (data.equipment || 'Full Gym').toLowerCase().replace(' ', '_')
-                }
-                setProfile(mappedProfile)
-            } catch (e) {
-                console.error("Error loading profile", e)
+        try {
+            const { createClient } = await import('@/utils/supabase/client')
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+
+            let dbProfile: any = null
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single()
+                dbProfile = data
             }
-        } else {
-            // Default fallbacks
+
+            const saved = localStorage.getItem('apex_athlete_profile')
+            let localData: any = {}
+            if (saved) {
+                try { localData = JSON.parse(saved) } catch (e) {}
+            }
+
+            const mappedProfile = {
+                full_name: dbProfile?.name || user?.user_metadata?.name || localData.name || 'ATHLETE',
+                goal: (dbProfile?.goal || localData.goal || 'Muscle Gain').toLowerCase().replace(' ', '_'),
+                level: (dbProfile?.level || localData.level || 'Intermediate').toLowerCase(),
+                equipment: (dbProfile?.equipment || localData.equipment || 'Full Gym').toLowerCase().replace(' ', '_')
+            }
+            setProfile(mappedProfile)
+        } catch (e) {
+            console.error("Error loading profile", e)
             setProfile({
                 full_name: 'ATHLETE',
                 goal: 'muscle_gain',

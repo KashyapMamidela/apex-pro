@@ -48,67 +48,79 @@ export default function DashboardOverview() {
     const caloriePct = Math.min(100, Math.round((caloriesConsumed / caloriesTarget) * 100))
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const saved = localStorage.getItem('apex_athlete_profile')
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved)
-                    const mapped = {
-                        name: data.name || 'ATHLETE',
-                        goal: (data.goal || 'Muscle Gain').toLowerCase().replace(/ /g, '_'),
-                        level: (data.level || 'Intermediate').toLowerCase(),
-                        equipment: (data.equipment || 'Full Gym').toLowerCase().replace(/ /g, '_')
-                    }
-                    setProfile(mapped)
-                    const session = generateWorkoutSession(mapped.goal as any, mapped.level as any, mapped.equipment as any, 'full_body')
-                    setWorkout(session)
-                } catch (e) { console.error(e) }
-            }
-            setLoading(false)
-        }, 600)
-
         const fetchDashboardData = async () => {
             try {
                 const { createClient } = await import('@/utils/supabase/client')
                 const supabase = createClient()
                 const { data: { user } } = await supabase.auth.getUser()
-                if (!user) return
-
-                const { data: stats } = await supabase
-                    .from('user_stats')
-                    .select('total_xp, current_streak')
-                    .eq('user_id', user.id)
-                    .single()
                 
-                if (stats) {
-                    setXp(stats.total_xp || 0)
-                    setStreakDays(stats.current_streak || 0)
+                // Fallback name/data from localStorage
+                let localData: any = {}
+                const saved = localStorage.getItem('apex_athlete_profile')
+                if (saved) {
+                    try { localData = JSON.parse(saved) } catch (e) { console.error(e) }
                 }
 
-                const todayStart = new Date()
-                todayStart.setHours(0, 0, 0, 0)
-                const todayEnd = new Date()
-                todayEnd.setHours(23, 59, 59, 999)
+                if (user) {
+                    // Try to get profile from Supabase
+                    const { data: dbProfile } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single()
 
-                const { data: nutrition } = await supabase
-                    .from('nutrition_logs')
-                    .select('calories')
-                    .eq('user_id', user.id)
-                    .gte('logged_at', todayStart.toISOString())
-                    .lte('logged_at', todayEnd.toISOString())
+                    const mapped = {
+                        name: dbProfile?.full_name || user.user_metadata?.name || localData.name || 'ATHLETE',
+                        goal: (dbProfile?.fitness_goal || localData.goal || 'Muscle Gain').toLowerCase().replace(/ /g, '_'),
+                        level: (dbProfile?.experience_level || localData.level || 'Intermediate').toLowerCase(),
+                        equipment: (dbProfile?.equipment_access || localData.equipment || 'Full Gym').toLowerCase().replace(/ /g, '_')
+                    }
+                    setProfile(mapped)
+                    
+                    // Generate workout based on profile
+                    const session = generateWorkoutSession(mapped.goal as any, mapped.level as any, mapped.equipment as any, 'full_body')
+                    setWorkout(session)
 
-                if (nutrition) {
-                    const totalCals = nutrition.reduce((sum, log) => sum + (log.calories || 0), 0)
-                    setCaloriesConsumed(totalCals)
+                    // Fetch other stats
+                    const { data: stats } = await supabase
+                        .from('user_stats')
+                        .select('xp')
+                        .eq('user_id', user.id)
+                        .single()
+                    
+                    if (stats) {
+                        setXp(stats.xp || 0)
+                        setStreakDays(0)
+                    }
+
+                    const todayStr = new Date().toISOString().split('T')[0]
+                    const { data: nutrition } = await supabase
+                        .from('nutrition_logs')
+                        .select('total_calories')
+                        .eq('user_id', user.id)
+                        .eq('date', todayStr)
+
+                    if (nutrition) {
+                        const totalCals = nutrition.reduce((sum, log) => sum + (log.total_calories || 0), 0)
+                        setCaloriesConsumed(totalCals)
+                    }
+                } else if (localData.name) {
+                    // Guest/Local mode if not logged in
+                    setProfile({
+                        name: localData.name,
+                        goal: (localData.goal || 'Muscle Gain').toLowerCase().replace(/ /g, '_'),
+                        level: (localData.level || 'Intermediate').toLowerCase(),
+                        equipment: (localData.equipment || 'Full Gym').toLowerCase().replace(/ /g, '_')
+                    })
                 }
             } catch (err) {
-                console.error("Error fetching stats:", err)
+                console.error("Dashboard error:", err)
+            } finally {
+                setLoading(false)
             }
         }
         
         fetchDashboardData()
-
-        return () => clearTimeout(timer)
     }, [])
 
     const toggleSet = (exIdx: number, setIdx: number) => {

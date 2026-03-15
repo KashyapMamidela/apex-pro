@@ -8,6 +8,7 @@ import {
     Utensils,
     User,
     Zap,
+    Activity,
 } from 'lucide-react'
 
 // Mobile bottom nav — visible on md and below only
@@ -18,6 +19,7 @@ const navItems = [
     { icon: <Dumbbell className="w-5 h-5" />, label: 'Workouts', href: '/dashboard/workouts' },
     // CENTER — Apex Tracker (elevated)
     null,
+    { icon: <Activity className="w-5 h-5" />, label: 'Tracker', href: '/dashboard/tracker' },
     { icon: <Utensils className="w-5 h-5" />, label: 'Diet', href: '/dashboard/nutrition' },
     { icon: <User className="w-5 h-5" />, label: 'Profile', href: '/dashboard/profile' },
 ]

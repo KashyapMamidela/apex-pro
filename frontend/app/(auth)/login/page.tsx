@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Shield } from 'lucide-react'
 import { login } from '../actions'
@@ -23,23 +23,67 @@ const FloatingIcon = ({ style, children }: { style?: React.CSSProperties; childr
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const router = useRouter()
-
     const [pending, setPending] = useState(false)
+    const searchParams = useSearchParams()
 
-    const handleGoogle = () => {
-        alert('Google login coming soon')
+    useEffect(() => {
+        const errorParam = searchParams.get('error')
+        const messageParam = searchParams.get('message')
+        if (errorParam) {
+            setError(decodeURIComponent(errorParam))
+            setPending(false)
+        }
+        if (messageParam) {
+            setError(null)
+            setPending(false)
+        }
+    }, [searchParams])
+
+    const handleGoogle = async () => {
+        setError(null)
+        try {
+            const { createClient } = await import('@/utils/supabase/client')
+            const supabase = createClient()
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/api/auth/callback`,
+                    queryParams: { access_type: 'offline', prompt: 'consent' },
+                },
+            })
+            if (error) setError(error.message)
+        } catch (e: any) {
+            setError('Google sign in failed. Please try again.')
+        }
     }
 
     // Handle form action directly for native FormData support
     const handleLoginAction = async (formData: FormData) => {
         setPending(true)
         setError(null)
+
+        const emailVal = formData.get('email') as string
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailVal || !emailRegex.test(emailVal)) {
+            setError('Please enter a valid email address.')
+            setPending(false)
+            return
+        }
+        const passwordVal = formData.get('password') as string
+        if (!passwordVal || passwordVal.length < 6) {
+            setError('Password must be at least 6 characters.')
+            setPending(false)
+            return
+        }
+
         try {
             await login(formData)
         } catch (e: any) {
+            // Next.js redirect() throws a special error that should not be caught here
+            if (e.message === 'NEXT_REDIRECT') {
+                throw e
+            }
             setError(e.message || 'Login failed')
             setPending(false)
         }

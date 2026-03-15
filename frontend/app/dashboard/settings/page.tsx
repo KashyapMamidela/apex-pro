@@ -11,8 +11,8 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
-    const [name, setName] = useState('ATHLETE')
-    const [email, setEmail] = useState('athlete@apex.com')
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
     const [level, setLevel] = useState('Intermediate')
     const [equipment, setEquipment] = useState('Full Gym')
     const [goal, setGoal] = useState('Muscle Gain')
@@ -24,38 +24,69 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false)
 
     useEffect(() => {
-        const saved = localStorage.getItem('apex_athlete_profile')
-        if (saved) {
+        const fetchProfile = async () => {
             try {
-                const data = JSON.parse(saved)
-                setName(data.name || 'ATHLETE')
-                setLevel(data.level || 'Intermediate')
-                setEquipment(data.equipment || 'Full Gym')
-                setGoal(data.goal || 'Muscle Gain')
-                setAge(data.age || '25')
-                setHeight(data.height || '175')
-                setWeight(data.weight || '70')
-                setActivityLevel(data.activityLevel || 'Moderate')
-                setDietType(data.dietType || 'Non-Veg')
+                const { createClient } = await import('@/utils/supabase/client')
+                const supabase = createClient()
+
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) return
+
+                setEmail(user.email || '')
+
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile) {
+                    setName(profile.name || '')
+                    setLevel(profile.level || 'Intermediate')
+                    setEquipment(profile.equipment || 'Full Gym')
+                    setGoal(profile.goal || 'Muscle Gain')
+                    setAge(profile.age ? String(profile.age) : '')
+                    setHeight(profile.height_cm ? String(profile.height_cm) : '')
+                    setWeight(profile.weight_kg ? String(profile.weight_kg) : '')
+                    setActivityLevel(profile.activity_level || 'Moderate')
+                    setDietType(profile.diet_type || 'Non-Veg')
+                }
             } catch (e) {
-                console.error("Failed to parse profile", e)
+                console.error('Failed to load settings profile', e)
             }
         }
+
+        fetchProfile()
     }, [])
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true)
-        const profile = {
-            name, level, equipment, goal,
-            age, height, weight, activityLevel, dietType
-        }
-        localStorage.setItem('apex_athlete_profile', JSON.stringify(profile))
+        try {
+            const { createClient } = await import('@/utils/supabase/client')
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                setIsSaving(false)
+                return
+            }
 
-        // Brief delay for UX
-        setTimeout(() => {
+            await supabase.from('profiles').upsert({
+                id: user.id,
+                name,
+                goal,
+                level,
+                equipment,
+                age: age ? Number(age) : null,
+                height_cm: height ? Number(height) : null,
+                weight_kg: weight ? Number(weight) : null,
+                activity_level: activityLevel,
+                diet_type: dietType,
+            })
+        } catch (e) {
+            console.error('Failed to save settings profile', e)
+        } finally {
             setIsSaving(false)
-            alert('SYSTEM CONFIGURATION UPDATED')
-        }, 600)
+        }
     }
 
     return (

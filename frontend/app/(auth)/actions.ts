@@ -26,6 +26,10 @@ export async function signup(formData: FormData) {
   const password = formData.get('password') as string
   const name = formData.get('name') as string
 
+  if (!email || !password) {
+    redirect('/signup?error=Email and password are required')
+  }
+
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signUp({
@@ -35,7 +39,7 @@ export async function signup(formData: FormData) {
       data: {
         name,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
     },
   })
 
@@ -43,8 +47,22 @@ export async function signup(formData: FormData) {
     redirect('/signup?error=' + encodeURIComponent(error.message))
   }
 
-  // Go to onboarding after signup
-  redirect('/onboarding')
+  // Attempt to sign in immediately. 
+  // NOTE: If email confirmation is enabled in Supabase, this might fail with "Email not confirmed".
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (signInError) {
+    // If sign-in fails after a successful signup, it's likely due to email confirmation being required.
+    if (signInError.message.toLowerCase().includes('confirm')) {
+      redirect('/login?message=' + encodeURIComponent('Please check your email to confirm your account before logging in.'))
+    }
+    redirect('/login?error=' + encodeURIComponent(signInError.message))
+  }
+
+  redirect('/dashboard')
 }
 
 export async function logout() {

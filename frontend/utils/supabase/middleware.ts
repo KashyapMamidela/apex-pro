@@ -31,10 +31,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Routes demanding auth
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  const pathname = request.nextUrl.pathname
+
+  const protectedPaths = ['/dashboard', '/onboarding']
+  const isProtected = protectedPaths.some(p => pathname.startsWith(p))
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && (pathname === '/login' || pathname === '/signup')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

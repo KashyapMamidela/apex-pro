@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import DeadliftLoader from '@/components/ui/DeadliftLoader'
@@ -11,30 +11,73 @@ export default function SignupPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [fullName, setFullName] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [googleLoading, setGoogleLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const router = useRouter()
-
     const [pending, setPending] = useState(false)
+    const [googleLoading, setGoogleLoading] = useState(false)
+    const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const errorParam = searchParams.get('error')
+        if (errorParam) {
+            setError(decodeURIComponent(errorParam))
+            setPending(false)
+        }
+    }, [searchParams])
 
     // Handle form action directly for native FormData support
     const handleSignupAction = async (formData: FormData) => {
         setPending(true)
         setError(null)
+
+        const emailVal = formData.get('email') as string
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailVal || !emailRegex.test(emailVal)) {
+            setError('Please enter a valid email address.')
+            setPending(false)
+            return
+        }
+        const passwordVal = formData.get('password') as string
+        if (!passwordVal || passwordVal.length < 8) {
+            setError('Password must be at least 8 characters.')
+            setPending(false)
+            return
+        }
+        const nameVal = formData.get('name') as string
+        if (!nameVal || nameVal.trim().length < 2) {
+            setError('Please enter your full name.')
+            setPending(false)
+            return
+        }
+
         try {
-            // Need to import this action first!
             const { signup } = await import('../actions')
             await signup(formData)
         } catch (e: any) {
+            // Next.js redirect() throws a special error that should not be caught here
+            if (e.message === 'NEXT_REDIRECT') {
+                throw e
+            }
             setError(e.message || 'Signup failed')
             setPending(false)
         }
     }
 
-    const handleGoogle = () => {
-        // TODO: Implement Google OAuth
-        alert('Google signup coming soon')
+    const handleGoogle = async () => {
+        setError(null)
+        try {
+            const { createClient } = await import('@/utils/supabase/client')
+            const supabase = createClient()
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/api/auth/callback`,
+                    queryParams: { access_type: 'offline', prompt: 'consent' },
+                },
+            })
+            if (error) setError(error.message)
+        } catch (e: any) {
+            setError('Google sign in failed. Please try again.')
+        }
     }
 
     if (pending || googleLoading) {
