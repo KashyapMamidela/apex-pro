@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // Initialize the Google Generative AI SDK with the API key from environment variables
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '')
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 // We define two models based on latency vs reasoning needs
 // 1.5 Pro for complex plan generation (workouts, diets)

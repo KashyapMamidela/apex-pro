@@ -1,201 +1,351 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
-import { generateWorkoutSession } from '@/lib/workout-engine'
-import {
-    Dumbbell,
-    Flame,
-    Target,
-    ChevronRight,
-    Play,
-    RotateCcw,
-    AlertCircle,
-    CheckCircle2
-} from 'lucide-react'
+import { Dumbbell, Flame, Clock, Zap, CheckCircle2, Circle, 
+         RotateCcw, AlertCircle, Play, ChevronDown, ChevronUp } from 'lucide-react'
+import DeadliftLoader from '@/components/ui/DeadliftLoader'
 
 export default function WorkoutsPage() {
-    const [profile, setProfile] = useState<any>(null)
-    const [workout, setWorkout] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<any>(null)
+  const [plan, setPlan] = useState<any>(null)
+  const [planId, setPlanId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set())
+  const [expandedExercise, setExpandedExercise] = useState<number | null>(null)
+  const [logging, setLogging] = useState(false)
+  const [xpResult, setXpResult] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        fetchProfile()
-    }, [])
+  useEffect(() => { init() }, [])
 
-    useEffect(() => {
-        if (profile) {
-            const dailyWorkout = generateWorkoutSession(
-                (profile.goal || 'muscle_gain') as any,
-                (profile.level || 'intermediate') as any,
-                (profile.equipment || 'full_gym') as any,
-                'full_body'
-            )
-            setWorkout(dailyWorkout)
-        }
-    }, [profile])
+  const init = async () => {
+    setLoading(true)
+    try {
+      const { createClient } = await import('@/utils/supabase/client')
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
 
-    const fetchProfile = async () => {
-        setLoading(true)
-        try {
-            const { createClient } = await import('@/utils/supabase/client')
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('name, goal, experience_level, equipment, age, gender, body_type, height, weight')
+        .eq('id', user.id)
+        .single()
 
-            let dbProfile: any = null
-            if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single()
-                dbProfile = data
-            }
+      const localRaw = localStorage.getItem('apex_athlete_profile')
+      const local = localRaw ? JSON.parse(localRaw) : {}
 
-            const saved = localStorage.getItem('apex_athlete_profile')
-            let localData: any = {}
-            if (saved) {
-                try { localData = JSON.parse(saved) } catch (e) {}
-            }
+      const p = {
+        name: profileData?.name || user.user_metadata?.name || local.name || 'Athlete',
+        goal: profileData?.goal || local.goal || 'general_fitness',
+        experience_level: profileData?.experience_level || local.level || 'beginner',
+        equipment: profileData?.equipment || local.equipment || 'full_gym',
+        age: profileData?.age || local.age || 25,
+        gender: profileData?.gender || local.gender || 'unspecified',
+        body_type: profileData?.body_type || local.activity || 'lightly_active',
+        height: profileData?.height || local.height || 170,
+        weight: profileData?.weight || local.weight || 70,
+        session_duration: local.duration || '45-60',
+        workout_days: local.days || 3,
+        diet_preference: local.diet || 'flex',
+      }
+      setProfile(p)
 
-            const mappedProfile = {
-                full_name: dbProfile?.name || user?.user_metadata?.name || localData.name || 'ATHLETE',
-                goal: (dbProfile?.goal || localData.goal || 'Muscle Gain').toLowerCase().replace(' ', '_'),
-                level: (dbProfile?.level || localData.level || 'Intermediate').toLowerCase(),
-                equipment: (dbProfile?.equipment || localData.equipment || 'Full Gym').toLowerCase().replace(' ', '_')
-            }
-            setProfile(mappedProfile)
-        } catch (e) {
-            console.error("Error loading profile", e)
-            setProfile({
-                full_name: 'ATHLETE',
-                goal: 'muscle_gain',
-                level: 'intermediate',
-                equipment: 'full_gym'
-            })
-        }
-        setLoading(false)
+      // Check for cached plan
+      const { data: cached } = await supabase
+        .from('ai_plans')
+        .select('id, plan_json')
+        .eq('user_id', user.id)
+        .eq('plan_type', 'workout')
+        .gt('expires_at', new Date().toISOString())
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (cached?.plan_json) {
+        setPlan(cached.plan_json)
+        setPlanId(cached.id)
+      }
+    } catch (e) {
+      console.error('Init error:', e)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="w-8 h-8 border-4 border-apex-accent border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        )
+  const generateWorkout = async (force = false) => {
+    if (!profile) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/generate-workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userProfile: profile,
+          workoutType: profile.equipment === 'home_workout' ? 'home' : 'gym',
+          weekNumber: 1,
+          previousWorkouts: []
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate workout')
+      setPlan(data.plan)
+      setPlanId(data.plan_id)
+      setCompletedExercises(new Set())
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate workout. Check your Gemini API key.')
+    } finally {
+      setGenerating(false)
     }
+  }
 
-    return (
-        <div className="space-y-8 animate-fade-up">
-            <header>
-                <div className="text-[0.65rem] font-mono tracking-[3px] text-apex-accent uppercase mb-1.5">
-                    ATHLETE TRAINING SYSTEM
-                </div>
-                <h1 className="font-display text-[2.6rem] tracking-[1px] uppercase">
-                    WORKOUT <em className="text-apex-accent not-italic">FORGE</em>
-                </h1>
-            </header>
+  const toggleExercise = (idx: number) => {
+    setCompletedExercises(prev => {
+      const next = new Set(prev)
+      next.has(idx) ? next.delete(idx) : next.add(idx)
+      return next
+    })
+  }
 
-            {workout && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Current Workout Card */}
-                        <div className="bg-card border border-border-main overflow-hidden">
-                            <div className="p-7 border-b border-border-main flex justify-between items-center">
-                                <div>
-                                    <h2 className="font-display text-2xl tracking-[1px] uppercase">{workout.name}</h2>
-                                    <p className="text-apex-muted text-xs font-mono uppercase tracking-[1px] mt-1">SYSTEM RECOMMENDED ROUTINE</p>
-                                </div>
-                                <button className="bg-apex-accent text-bg px-6 py-2.5 text-xs font-bold tracking-[2px] uppercase transition-all hover:bg-[#e0ff33]">
-                                    START SESSION
-                                </button>
-                            </div>
+  const finishWorkout = async () => {
+    if (!planId || !plan) return
+    setLogging(true)
+    try {
+      const res = await fetch('/api/log-workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId,
+          exercisesCompleted: plan.exercises.map((ex: any, i: number) => ({
+            name: ex.name,
+            completed: completedExercises.has(i)
+          })),
+          durationMinutes: plan.duration_minutes || 45,
+          xpEarned: plan.xp_reward || 100
+        })
+      })
+      const result = await res.json()
+      if (result.success) setXpResult(result)
+    } catch (e) {
+      console.error('Log error:', e)
+    } finally {
+      setLogging(false)
+    }
+  }
 
-                            <div className="divide-y divide-border-main">
-                                {workout.exercises.map((ex: any, i: number) => (
-                                    <div key={i} className="p-6 flex flex-col md:flex-row md:items-center gap-6 group hover:bg-white/[0.01] transition-colors">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <span className="w-6 h-6 rounded-full bg-surface border border-border-main flex items-center justify-center text-[0.65rem] font-mono text-apex-accent">
-                                                    {i + 1}
-                                                </span>
-                                                <h3 className="font-display text-xl tracking-[0.5px] uppercase">{ex.name}</h3>
-                                            </div>
-                                            <div className="flex flex-wrap gap-4 mt-3">
-                                                <div className="px-3 py-1 bg-surface border border-border-main rounded text-[0.65rem] font-mono whitespace-nowrap">
-                                                    <span className="text-apex-muted">SETS:</span> {ex.sets}
-                                                </div>
-                                                <div className="px-3 py-1 bg-surface border border-border-main rounded text-[0.65rem] font-mono whitespace-nowrap">
-                                                    <span className="text-apex-muted">REPS:</span> {ex.reps}
-                                                </div>
-                                                <div className="px-3 py-1 bg-surface border border-border-main rounded text-[0.65rem] font-mono whitespace-nowrap">
-                                                    <span className="text-apex-muted">REST:</span> {ex.rest}s
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button className="p-2.5 border border-border-main bg-surface text-apex-muted hover:text-apex-accent hover:border-apex-accent transition-all" title="View Alternatives">
-                                                <RotateCcw className="w-4 h-4" />
-                                            </button>
-                                            <button className="p-2.5 border border-border-main bg-surface text-apex-muted hover:text-apex-accent hover:border-apex-accent transition-all" title="Video Guide">
-                                                <Play className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+  if (loading) return <DeadliftLoader message="Loading Training Protocol..." />
+  if (generating) return <DeadliftLoader message="Gemini AI is forging your workout..." />
 
-                    <div className="space-y-6">
-                        {/* Training Rules info */}
-                        <div className="bg-surface border border-border-main p-7">
-                            <div className="flex items-center gap-2 mb-4">
-                                <AlertCircle className="w-5 h-5 text-apex-accent" />
-                                <h3 className="font-display text-lg tracking-[1px] uppercase">SYSTEM RULES</h3>
-                            </div>
-                            <ul className="space-y-4">
-                                <li className="flex gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
-                                    <p className="text-[0.75rem] text-apex-muted leading-relaxed">
-                                        <strong className="text-apex-text uppercase">Progressive Overload:</strong> Increase weight by 2.5kg if you hit all target reps in the final set.
-                                    </p>
-                                </li>
-                                <li className="flex gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
-                                    <p className="text-[0.75rem] text-apex-muted leading-relaxed">
-                                        <strong className="text-apex-text uppercase">Rest Periods:</strong> Stick to the 90s timer to maintain metabolic stress levels.
-                                    </p>
-                                </li>
-                                <li className="flex gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
-                                    <p className="text-[0.75rem] text-apex-muted leading-relaxed">
-                                        <strong className="text-apex-text uppercase">Form Priority:</strong> Depth over weight. Reset if form breaks down before RPE 9.
-                                    </p>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Weekly Schedule */}
-                        <div className="bg-card border border-border-main p-7">
-                            <h3 className="font-display text-lg tracking-[1px] uppercase mb-5">ROTATION SCHEDULE</h3>
-                            <div className="space-y-3">
-                                {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day, i) => (
-                                    <div key={day} className="flex items-center justify-between p-3 bg-surface border border-border-main rounded-sm">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-[0.65rem] font-mono ${i === 4 ? 'text-apex-accent' : 'text-apex-muted'}`}>{day}</span>
-                                            <span className="text-[0.8rem] font-semibold text-apex-text">
-                                                {i === 4 ? 'CHEST & TRICEPS' : i === 5 ? 'REST DAY' : i === 6 ? 'LEG DAY' : 'UPPER BODY'}
-                                            </span>
-                                        </div>
-                                        {i < 4 ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <div className="w-4 h-4 rounded-full border border-border-main" />}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="space-y-8 animate-fade-up">
+      <header className="flex justify-between items-end">
+        <div>
+          <div className="text-[0.65rem] font-mono tracking-[3px] text-apex-accent uppercase mb-1.5">
+            AI TRAINING SYSTEM
+          </div>
+          <h1 className="font-display text-[2.6rem] tracking-[1px] uppercase">
+            WORKOUT <em className="text-apex-accent not-italic">FORGE</em>
+          </h1>
+          {profile && (
+            <p className="text-apex-muted text-xs mt-1 font-inter">
+              {profile.name} · {profile.goal?.replace('_', ' ').toUpperCase()} · {profile.experience_level}
+            </p>
+          )}
         </div>
-    )
+        {plan && (
+          <button
+            onClick={() => generateWorkout(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-border-main bg-surface text-apex-muted hover:text-apex-accent hover:border-apex-accent transition-all text-xs font-mono uppercase"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Regenerate
+          </button>
+        )}
+      </header>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm font-inter rounded">
+          {error}
+        </div>
+      )}
+
+      {xpResult && (
+        <div className="bg-apex-accent/10 border border-apex-accent/30 p-4 flex items-center gap-3">
+          <Zap className="w-5 h-5 text-apex-accent" />
+          <div>
+            <div className="font-display text-lg text-apex-accent">+{xpResult.xpAwarded} XP EARNED</div>
+            {xpResult.levelUp && (
+              <div className="text-xs text-apex-muted font-mono">LEVEL UP → {xpResult.newLabel}</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!plan ? (
+        <div className="text-center py-20 border border-dashed border-border-main">
+          <Dumbbell className="w-16 h-16 text-apex-accent mx-auto mb-6 opacity-60" />
+          <h2 className="font-display text-3xl mb-3 uppercase">Ready to Train?</h2>
+          <p className="text-apex-muted text-sm font-inter mb-8 max-w-md mx-auto">
+            Your Gemini AI coach will create a personalized workout based on your goal 
+            ({profile?.goal?.replace('_', ' ')}) and experience level ({profile?.experience_level}).
+          </p>
+          <button
+            onClick={() => generateWorkout()}
+            className="bg-apex-accent text-bg px-8 py-4 font-display text-lg tracking-[2px] uppercase hover:bg-apex-accent2 transition-colors inline-flex items-center gap-3"
+          >
+            <Flame className="w-5 h-5" /> Generate AI Workout
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Session Header */}
+            <div className="bg-card border border-border-main p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="font-display text-2xl uppercase tracking-wide">{plan.session_name}</h2>
+                  <p className="text-apex-muted text-xs font-mono uppercase tracking-[1px] mt-1">{plan.focus}</p>
+                </div>
+                <div className="flex gap-4 text-right">
+                  <div>
+                    <div className="font-mono font-bold text-apex-accent">{plan.duration_minutes}m</div>
+                    <div className="text-[0.6rem] text-apex-dim uppercase">Duration</div>
+                  </div>
+                  <div>
+                    <div className="font-mono font-bold text-apex-warn">{plan.estimated_calories}</div>
+                    <div className="text-[0.6rem] text-apex-dim uppercase">Calories</div>
+                  </div>
+                  <div>
+                    <div className="font-mono font-bold text-apex-info">{plan.xp_reward}</div>
+                    <div className="text-[0.6rem] text-apex-dim uppercase">XP</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warmup */}
+              {plan.warmup?.length > 0 && (
+                <div className="border-t border-border-main pt-4">
+                  <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-2">Warmup</div>
+                  <div className="flex flex-wrap gap-2">
+                    {plan.warmup.map((w: any, i: number) => (
+                      <span key={i} className="text-[0.7rem] font-mono bg-surface border border-border-main px-2 py-1 text-apex-muted">
+                        {w.name} · {w.duration}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Exercises */}
+            <div className="bg-card border border-border-main overflow-hidden">
+              <div className="p-5 border-b border-border-main">
+                <h3 className="font-display text-lg uppercase tracking-wide">
+                  Exercises · {completedExercises.size}/{plan.exercises?.length} Done
+                </h3>
+              </div>
+              <div className="divide-y divide-border-main">
+                {plan.exercises?.map((ex: any, i: number) => {
+                  const done = completedExercises.has(i)
+                  const expanded = expandedExercise === i
+                  return (
+                    <div key={i} className={`transition-colors ${done ? 'bg-apex-accent/5' : 'hover:bg-white/[0.01]'}`}>
+                      <div className="p-5 flex items-center gap-4">
+                        <button
+                          onClick={() => toggleExercise(i)}
+                          className="shrink-0"
+                        >
+                          {done
+                            ? <CheckCircle2 className="w-6 h-6 text-apex-accent" />
+                            : <Circle className="w-6 h-6 text-border-sub hover:text-apex-accent transition-colors" />
+                          }
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className={`font-display text-lg uppercase tracking-wide ${done ? 'text-apex-accent' : ''}`}>
+                              {ex.name}
+                            </h4>
+                            {done && <span className="text-[0.6rem] font-mono text-apex-accent">DONE</span>}
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-[0.65rem] font-mono text-apex-muted">
+                            <span>{ex.sets} sets</span>
+                            <span>{ex.reps} reps</span>
+                            <span>{ex.rest_seconds}s rest</span>
+                            {ex.weight_suggestion && <span className="text-apex-accent">{ex.weight_suggestion}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setExpandedExercise(expanded ? null : i)}
+                          className="p-2 text-apex-muted hover:text-apex-accent transition-colors"
+                        >
+                          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {expanded && (
+                        <div className="px-5 pb-5 pt-0 ml-10 space-y-2">
+                          <p className="text-[0.75rem] text-apex-muted font-inter leading-relaxed">
+                            <strong className="text-apex-text">Form cue:</strong> {ex.form_cue}
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            <span className="text-[0.65rem] bg-surface border border-border-main px-2 py-1 font-mono">
+                              {ex.muscle_group}
+                            </span>
+                            {ex.secondary_muscles?.map((m: string) => (
+                              <span key={m} className="text-[0.65rem] bg-surface border border-border-main px-2 py-1 font-mono text-apex-muted">
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Finish Button */}
+            <button
+              onClick={finishWorkout}
+              disabled={logging || completedExercises.size === 0}
+              className="w-full py-4 bg-apex-accent text-bg font-display text-lg tracking-[2px] uppercase hover:bg-apex-accent2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {logging ? 'Saving...' : `Finish Workout · Claim ${plan.xp_reward} XP`}
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-surface border border-border-main p-7">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-apex-accent" />
+                <h3 className="font-display text-lg tracking-[1px] uppercase">SYSTEM RULES</h3>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
+                  <p className="text-[0.75rem] text-apex-muted leading-relaxed">
+                    <strong className="text-apex-text uppercase">Progressive Overload:</strong> Increase weight by 2.5kg if you hit all target reps in the final set.
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
+                  <p className="text-[0.75rem] text-apex-muted leading-relaxed">
+                    <strong className="text-apex-text uppercase">Rest Periods:</strong> Stick to the timer to maintain metabolic stress.
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-apex-accent mt-1.5 shrink-0" />
+                  <p className="text-[0.75rem] text-apex-muted leading-relaxed">
+                    <strong className="text-apex-text uppercase">Form Priority:</strong> Depth over weight. Stop if form breaks.
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

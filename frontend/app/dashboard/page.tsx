@@ -70,10 +70,10 @@ export default function DashboardOverview() {
                         .single()
 
                     const mapped = {
-                        name: dbProfile?.full_name || user.user_metadata?.name || localData.name || 'ATHLETE',
-                        goal: (dbProfile?.fitness_goal || localData.goal || 'Muscle Gain').toLowerCase().replace(/ /g, '_'),
-                        level: (dbProfile?.experience_level || localData.level || 'Intermediate').toLowerCase(),
-                        equipment: (dbProfile?.equipment_access || localData.equipment || 'Full Gym').toLowerCase().replace(/ /g, '_')
+                        name: dbProfile?.name || user.user_metadata?.name || user.user_metadata?.full_name || localData.name || 'ATHLETE',
+                        goal: dbProfile?.goal || (localData.goal || 'muscle_gain').toLowerCase().replace(/ /g, '_'),
+                        level: dbProfile?.experience_level || (localData.level || 'intermediate').toLowerCase(),
+                        equipment: dbProfile?.equipment || (localData.equipment || 'full_gym').toLowerCase().replace(/ /g, '_')
                     }
                     setProfile(mapped)
                     

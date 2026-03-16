@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import DeadliftLoader from '@/components/ui/DeadliftLoader'
 
-export default function SignupPage() {
+function SignupForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [fullName, setFullName] = useState('')
@@ -24,7 +24,6 @@ export default function SignupPage() {
         }
     }, [searchParams])
 
-    // Handle form action directly for native FormData support
     const handleSignupAction = async (formData: FormData) => {
         setPending(true)
         setError(null)
@@ -53,7 +52,6 @@ export default function SignupPage() {
             const { signup } = await import('../actions')
             await signup(formData)
         } catch (e: any) {
-            // Next.js redirect() throws a special error that should not be caught here
             if (e.message === 'NEXT_REDIRECT') {
                 throw e
             }
@@ -86,13 +84,9 @@ export default function SignupPage() {
 
     return (
         <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-bg text-apex-text">
-
-            {/* LEFT panel */}
             <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-surface border-r border-white/5">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
                     style={{ background: 'radial-gradient(circle, rgba(255,212,0,0.07) 0%, transparent 70%)' }} />
-
-                {/* Deadlift watermark */}
                 <div className="absolute bottom-0 right-0 opacity-[0.04] pointer-events-none">
                     <svg width="340" height="420" viewBox="0 0 320 400" fill="white">
                         <ellipse cx="160" cy="60" rx="35" ry="35" />
@@ -102,9 +96,7 @@ export default function SignupPage() {
                         <rect x="265" y="155" width="55" height="50" rx="8" />
                     </svg>
                 </div>
-
                 <span className="relative z-10 font-impact text-2xl text-apex-accent tracking-[5px]">APEX</span>
-
                 <div className="relative z-10">
                     <div className="text-[0.6rem] font-mono tracking-[4px] text-apex-accent uppercase mb-4">Elite Performance System</div>
                     <h1 className="font-display text-[3.2rem] font-black leading-[0.9] mb-5">
@@ -114,7 +106,6 @@ export default function SignupPage() {
                         Join 50K+ athletes building elite bodies with AI-powered science and precision nutrition.
                     </p>
                 </div>
-
                 <div className="relative z-10 flex gap-10">
                     {[['24/7', 'Elite Support'], ['AI', 'Precision'], ['50K+', 'Athletes']].map(([v, l]) => (
                         <div key={v}>
@@ -125,7 +116,6 @@ export default function SignupPage() {
                 </div>
             </div>
 
-            {/* RIGHT — form */}
             <motion.div
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -136,15 +126,12 @@ export default function SignupPage() {
                     <Link href="/" className="flex items-center gap-2 text-apex-muted text-[0.78rem] mb-10 hover:text-apex-text transition-colors font-inter">
                         <ChevronLeft className="w-4 h-4" /> Back to Home
                     </Link>
-
                     <div className="mb-8">
                         <h2 className="font-display text-[2.4rem] font-black leading-[0.9] mb-2">
                             Join the <span className="text-apex-accent">Forge</span>
                         </h2>
                         <p className="text-apex-muted text-[0.82rem] font-inter">Quick sign up — customize your plan right after.</p>
                     </div>
-
-                    {/* Google */}
                     <button onClick={handleGoogle} className="btn-ghost w-full flex items-center justify-center gap-3 py-3.5 mb-5 text-[0.85rem] font-inter rounded-xl">
                         <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -154,40 +141,51 @@ export default function SignupPage() {
                         </svg>
                         Continue with Google
                     </button>
-
                     <div className="flex items-center gap-3 mb-5">
                         <div className="flex-1 h-px bg-white/8" />
                         <span className="text-[0.6rem] font-mono text-apex-dim uppercase tracking-wider">or email</span>
                         <div className="flex-1 h-px bg-white/8" />
                     </div>
-
                     <form action={handleSignupAction} className="space-y-4">
-                        {[
-                            { label: 'Full Name', name: 'name', type: 'text', ph: 'John Doe', val: fullName, set: setFullName },
-                            { label: 'Email', name: 'email', type: 'email', ph: 'athlete@apex.com', val: email, set: setEmail },
-                            { label: 'Password', name: 'password', type: 'password', ph: '••••••••', val: password, set: setPassword },
-                        ].map(({ label, name, type, ph, val, set }) => (
-                            <div key={label} className="flex flex-col gap-1.5">
-                                <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">{label}</label>
-                                <input name={name} type={type} placeholder={ph} value={val}
-                                    onChange={e => set(e.target.value)} required
-                                    className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
-                                />
-                            </div>
-                        ))}
-
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">Full Name</label>
+                            <input name="name" type="text" placeholder="John Doe" value={fullName}
+                                onChange={e => setFullName(e.target.value)} required
+                                className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">Email</label>
+                            <input name="email" type="email" placeholder="athlete@apex.com" value={email}
+                                onChange={e => setEmail(e.target.value)} required
+                                className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[0.58rem] font-mono text-apex-muted uppercase tracking-[2px]">Password</label>
+                            <input name="password" type="password" placeholder="••••••••" value={password}
+                                onChange={e => setPassword(e.target.value)} required
+                                className="input-glass w-full px-4 py-3.5 text-[0.88rem] font-inter"
+                            />
+                        </div>
                         {error && <p className="text-apex-danger text-[0.78rem] font-inter bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20">{error}</p>}
-
                         <button type="submit" className="btn-primary w-full py-4 text-[0.9rem] rounded-xl mt-2">
                             Create Account →
                         </button>
                     </form>
-
                     <p className="text-center mt-6 text-[0.78rem] text-apex-muted font-inter">
                         Already an athlete? <Link href="/login" className="text-apex-accent hover:underline font-semibold">Login</Link>
                     </p>
                 </div>
             </motion.div>
         </div>
+    )
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<DeadliftLoader message="Forging connection..." />}>
+            <SignupForm />
+        </Suspense>
     )
 }

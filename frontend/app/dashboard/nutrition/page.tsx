@@ -11,50 +11,79 @@ export default function NutritionDashboard() {
     const [generating, setGenerating] = useState(false)
     const [water, setWater] = useState(0)
 
-    // Example user
-    const [userProfile] = useState({ goal: 'hypertrophy', weight: 80, height: 180, age: 28 })
+    const [profile, setProfile] = useState<any>(null)
 
     useEffect(() => {
-        fetchCurrentPlan()
+        init()
     }, [])
 
-    const fetchCurrentPlan = async () => {
+    const init = async () => {
+        setLoading(true)
         try {
             const { createClient } = await import('@/utils/supabase/client')
             const supabase = createClient()
-            
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) { setLoading(false); return }
+
+            // Get profile from Supabase
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('name, goal, weight, height, age, gender, body_type')
+                .eq('id', user.id)
+                .single()
+
+            // Merge with localStorage for session-specific fields
+            const local = JSON.parse(localStorage.getItem('apex_athlete_profile') || '{}')
+            const merged = {
+                name: profileData?.name || user.user_metadata?.name || local.name || 'Athlete',
+                goal: profileData?.goal || local.goal || 'general_fitness',
+                weight: profileData?.weight || local.weight || 70,
+                height: profileData?.height || local.height || 170,
+                age: profileData?.age || local.age || 25,
+                gender: profileData?.gender || local.gender || 'unspecified',
+                activity_level: profileData?.body_type || local.activity || 'lightly_active',
+                diet: local.diet || 'flex',
+                workout_days: local.days || 3,
+            }
+            setProfile(merged)
+
             // Get latest active diet plan
             const { data } = await supabase
                 .from('ai_plans')
                 .select('plan_json')
+                .eq('user_id', user.id)
                 .eq('plan_type', 'diet')
                 .order('generated_at', { ascending: false })
                 .limit(1)
-                .single()
+                .maybeSingle()
 
             if (data?.plan_json) {
                 setPlan(data.plan_json)
             }
         } catch (e) {
-            console.log('No active diet plan found')
+            console.error('Init error:', e)
         } finally {
             setLoading(false)
         }
     }
 
     const generateNewPlan = async () => {
+        if (!profile) return
         setGenerating(true)
         try {
             const res = await fetch('/api/generate-nutrition', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userProfile,
-                    answers: { preference: 'high protein', allergies: 'none' } // Mocked answers for demo
+                    userProfile: profile,
+                    answers: { preference: profile.diet || 'flexible' }
                 })
             })
             const data = await res.json()
             if (data.plan) {
                 setPlan(data.plan)
+            } else if (data.error) {
+                console.error('Generation error:', data.error)
             }
         } catch (e) {
             console.error(e)
@@ -93,7 +122,7 @@ export default function NutritionDashboard() {
                         <Apple className="text-apex-accent w-8 h-8" />
                         Daily <span className="text-apex-accent">Fuel</span>
                     </h1>
-                    <p className="text-apex-muted text-sm font-inter">Precision nutrition for {userProfile.goal}.</p>
+                    <p className="text-apex-muted text-sm font-inter">Personalized for {profile?.name || 'you'} · {(profile?.goal || 'your fitness goals').replace('_', ' ')}</p>
                 </div>
                 <button onClick={generateNewPlan} className="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest text-apex-dim transition-colors transition-colors">
                     Regenerate Plan

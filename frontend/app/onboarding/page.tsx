@@ -5,84 +5,40 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, ChevronLeft, Check, Zap } from 'lucide-react'
 
-// ── Body type SVG illustrations ──────────────────────────────────────────────
-const EctomorphSVG = () => (
-    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
-        <ellipse cx="40" cy="22" rx="14" ry="14" fill="currentColor" opacity="0.9" />
-        {/* Neck */}
-        <rect x="36" y="36" width="8" height="10" rx="3" fill="currentColor" opacity="0.8" />
-        {/* Narrow torso */}
-        <path d="M28 46 L52 46 L50 95 L30 95 Z" fill="currentColor" opacity="0.85" />
-        {/* Left arm */}
-        <rect x="20" y="47" width="8" height="42" rx="4" fill="currentColor" opacity="0.8" />
-        {/* Right arm */}
-        <rect x="52" y="47" width="8" height="42" rx="4" fill="currentColor" opacity="0.8" />
-        {/* Slim waist connector */}
-        <rect x="30" y="88" width="20" height="10" rx="3" fill="currentColor" opacity="0.75" />
-        {/* Left leg */}
-        <rect x="30" y="97" width="9" height="50" rx="4" fill="currentColor" opacity="0.85" />
-        {/* Right leg */}
-        <rect x="41" y="97" width="9" height="50" rx="4" fill="currentColor" opacity="0.85" />
-    </svg>
-)
-
-const MesomorphSVG = () => (
-    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
-        <ellipse cx="40" cy="20" rx="16" ry="16" fill="currentColor" opacity="0.9" />
-        <rect x="35" y="36" width="10" height="9" rx="3" fill="currentColor" opacity="0.8" />
-        {/* V-taper torso — wider shoulders narrow waist */}
-        <path d="M20 45 L60 45 L53 95 L27 95 Z" fill="currentColor" opacity="0.9" />
-        {/* Thick arms */}
-        <rect x="11" y="46" width="10" height="40" rx="5" fill="currentColor" opacity="0.85" />
-        <rect x="59" y="46" width="10" height="40" rx="5" fill="currentColor" opacity="0.85" />
-        {/* Hips */}
-        <rect x="27" y="88" width="26" height="12" rx="4" fill="currentColor" opacity="0.8" />
-        {/* Legs */}
-        <rect x="27" y="99" width="11" height="48" rx="5" fill="currentColor" opacity="0.9" />
-        <rect x="42" y="99" width="11" height="48" rx="5" fill="currentColor" opacity="0.9" />
-    </svg>
-)
-
-const EndomorphSVG = () => (
-    <svg viewBox="0 0 80 160" fill="none" className="w-full h-full">
-        <ellipse cx="40" cy="20" rx="18" ry="18" fill="currentColor" opacity="0.9" />
-        <rect x="35" y="38" width="10" height="8" rx="3" fill="currentColor" opacity="0.8" />
-        {/* Rounder torso */}
-        <path d="M16 46 L64 46 L62 98 L18 98 Z" fill="currentColor" opacity="0.88" />
-        {/* Round arms */}
-        <rect x="8" y="47" width="11" height="38" rx="5" fill="currentColor" opacity="0.8" />
-        <rect x="61" y="47" width="11" height="38" rx="5" fill="currentColor" opacity="0.8" />
-        {/* Wide hips */}
-        <rect x="18" y="91" width="44" height="14" rx="5" fill="currentColor" opacity="0.8" />
-        {/* Thicker legs */}
-        <rect x="20" y="104" width="14" height="44" rx="6" fill="currentColor" opacity="0.85" />
-        <rect x="46" y="104" width="14" height="44" rx="6" fill="currentColor" opacity="0.85" />
-    </svg>
-)
-
 // ── Step definitions ─────────────────────────────────────────────────────────
 const steps = [
+    {
+        id: 'name', title: "What should we call you?", subtitle: "Your name personalizes every plan we build for you.",
+        type: 'text', field: { key: 'name', placeholder: 'Your first name' },
+    },
     {
         id: 'age', title: 'How old are you?', subtitle: 'Helps us calibrate training intensity and recovery.',
         type: 'number', field: { key: 'age', label: 'Age', unit: 'years', min: 13, max: 80, placeholder: '25' },
     },
     {
-        id: 'gender', title: 'What\'s your gender?', subtitle: 'Affects calorie targets and hormonal considerations.',
+        id: 'gender', title: "What's your gender?", subtitle: 'Affects calorie targets and hormonal considerations.',
         type: 'options',
         options: [
-            { value: 'male', label: 'Male', color: '#00d4ff', emoji: '♂' },
-            { value: 'female', label: 'Female', color: '#ff9d00', emoji: '♀' },
-            { value: 'other', label: 'Other', color: '#9d4edd', emoji: '⚧' },
+            { value: 'male', label: 'Male', color: '#00d4ff', emoji: '♂', desc: 'Biological male' },
+            { value: 'female', label: 'Female', color: '#ff9d00', emoji: '♀', desc: 'Biological female' },
+            { value: 'other', label: 'Other / Prefer not to say', color: '#9d4edd', emoji: '⚧', desc: '' },
         ],
     },
     {
-        id: 'goal', title: 'What\'s your fitness goal?', subtitle: 'Your mission shapes every workout and meal we create.',
+        id: 'measurements', title: 'Your current measurements', subtitle: 'Used to calculate your exact calorie needs and BMI.',
+        type: 'measurements',
+    },
+    {
+        id: 'goal', title: "What's your primary goal?", subtitle: 'This shapes every workout, meal, and recovery plan.',
         type: 'options',
+        gridCols: 2,
         options: [
-            { value: 'fat_loss', label: 'Lose Fat', color: '#ff4545', emoji: '🔥' },
-            { value: 'muscle', label: 'Build Muscle', color: '#FFD400', emoji: '💪' },
-            { value: 'strength', label: 'Improve Strength', color: '#ff9d00', emoji: '🏋️' },
-            { value: 'fitness', label: 'General Fitness', color: '#22c55e', emoji: '🏃' },
+            { value: 'muscle_gain', label: 'Build Muscle', color: '#FFD400', emoji: '💪', desc: 'Increase size and definition' },
+            { value: 'fat_loss', label: 'Lose Fat', color: '#ff4545', emoji: '🔥', desc: 'Burn fat, get lean' },
+            { value: 'strength', label: 'Get Stronger', color: '#ff9d00', emoji: '🏋️', desc: 'Increase raw power and lifts' },
+            { value: 'general_fitness', label: 'General Fitness', color: '#22c55e', emoji: '🏃', desc: 'Improve overall health and energy' },
+            { value: 'mobility', label: 'Mobility & Flexibility', color: '#00d4ff', emoji: '🧘', desc: 'Move better, reduce pain, improve posture' },
+            { value: 'weight_gain', label: 'Gain Weight', color: '#9d4edd', emoji: '⬆️', desc: 'Healthy mass gain for thin frames' },
         ],
     },
     {
@@ -95,12 +51,23 @@ const steps = [
         ],
     },
     {
-        id: 'bodytype', title: 'Select your body type', subtitle: 'Choose the shape that best matches your natural build.',
-        type: 'bodytype',
+        id: 'activity', title: 'How active are you currently?', subtitle: 'Your daily movement outside the gym affects your calorie needs.',
+        type: 'options',
         options: [
-            { value: 'ectomorph', label: 'Ectomorph', color: '#00d4ff', svg: EctomorphSVG, desc: 'Lean & long, hard to gain weight' },
-            { value: 'mesomorph', label: 'Mesomorph', color: '#FFD400', svg: MesomorphSVG, desc: 'Athletic build, gains muscle easily' },
-            { value: 'endomorph', label: 'Endomorph', color: '#ff9d00', svg: EndomorphSVG, desc: 'Wider frame, gains weight easily' },
+            { value: 'sedentary', label: 'Desk Job / Mostly Sitting', color: '#888', emoji: '💻', desc: 'Little to no daily movement' },
+            { value: 'lightly_active', label: 'Lightly Active', color: '#22c55e', emoji: '🚶', desc: 'Walk or light activity most days' },
+            { value: 'moderately_active', label: 'Moderately Active', color: '#FFD400', emoji: '🏃', desc: 'Active job or regular light exercise' },
+            { value: 'very_active', label: 'Very Active', color: '#ff9d00', emoji: '⚡', desc: 'Physical job or intense daily exercise' },
+        ],
+    },
+    {
+        id: 'equipment', title: 'What equipment do you have access to?', subtitle: "We build workouts around what's actually available to you.",
+        type: 'options',
+        options: [
+            { value: 'full_gym', label: 'Full Gym', color: '#FFD400', emoji: '🏋️', desc: 'Barbells, machines, cables, everything' },
+            { value: 'dumbbells_only', label: 'Dumbbells Only', color: '#00d4ff', emoji: '🔵', desc: 'Dumbbell set at home or limited gym' },
+            { value: 'home_workout', label: 'No Equipment', color: '#22c55e', emoji: '🏠', desc: 'Bodyweight only, no equipment' },
+            { value: 'resistance_bands', label: 'Resistance Bands', color: '#9d4edd', emoji: '🟣', desc: 'Bands and bodyweight' },
         ],
     },
     {
@@ -108,7 +75,17 @@ const steps = [
         type: 'slider', field: { key: 'days', min: 2, max: 7 },
     },
     {
-        id: 'diet', title: 'Diet preference?', subtitle: 'We\'ll build your South Indian meal plan around this.',
+        id: 'duration', title: 'How long can you train per session?', subtitle: 'We build efficient workouts that fit your real schedule.',
+        type: 'options',
+        options: [
+            { value: '20-30', label: '20–30 min', color: '#22c55e', emoji: '⚡', desc: 'Short and intense' },
+            { value: '30-45', label: '30–45 min', color: '#FFD400', emoji: '🕐', desc: 'Standard session' },
+            { value: '45-60', label: '45–60 min', color: '#ff9d00', emoji: '🕐', desc: 'Full training block' },
+            { value: '60+', label: '60+ min', color: '#ff4545', emoji: '🔥', desc: 'Extended session, serious training' },
+        ],
+    },
+    {
+        id: 'diet', title: "What's your diet preference?", subtitle: 'Your AI meal plan will be built around this. We include Indian and global cuisines.',
         type: 'options',
         options: [
             { value: 'veg', label: 'Vegetarian', color: '#22c55e', emoji: '🥗', desc: 'Dal, paneer, sprouts, tofu' },
@@ -137,6 +114,8 @@ export default function OnboardingPage() {
     const canContinue = () => {
         if (cur.type === 'number') return !!answers[cur.field!.key] && Number(answers[cur.field!.key]) > 0
         if (cur.type === 'slider') return !!answers[cur.field!.key]
+        if (cur.type === 'text') return !!answers[cur.field!.key] && answers[cur.field!.key].trim().length >= 2
+        if (cur.type === 'measurements') return !!answers.height && Number(answers.height) > 0 && !!answers.weight && Number(answers.weight) > 0
         return !!answers[cur.id]
     }
 
@@ -147,33 +126,44 @@ export default function OnboardingPage() {
     }
 
     const finish = async () => {
-        // Save to Supabase instead of localStorage
         const { createClient } = await import('@/utils/supabase/client')
         const supabase = createClient()
-        
         try {
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
-                // Determine workout preference from existing steps if not explicit
-                const workout_type = answers.workout_type || 'gym'
-                const body_type = answers.bodytype
-                
                 await supabase.from('profiles').update({
+                    name: answers.name || user.user_metadata?.name || 'Athlete',
                     age: Number(answers.age),
                     gender: answers.gender,
                     goal: answers.goal,
                     experience_level: answers.level,
-                    body_type: body_type,
-                    is_profile_complete: true
+                    height: Number(answers.height),
+                    weight: Number(answers.weight),
+                    body_type: answers.activity,
+                    equipment: answers.equipment,
+                    is_profile_complete: true,
                 }).eq('id', user.id)
+
+                localStorage.setItem('apex_athlete_profile', JSON.stringify({
+                    name: answers.name,
+                    age: answers.age,
+                    gender: answers.gender,
+                    goal: answers.goal,
+                    level: answers.level,
+                    height: answers.height,
+                    weight: answers.weight,
+                    activity: answers.activity,
+                    equipment: answers.equipment,
+                    days: answers.days,
+                    duration: answers.duration,
+                    diet: answers.diet,
+                    onboarded: true
+                }))
             }
         } catch (e) {
             console.error('Failed to save profile', e)
         }
-
-        // Just in case, still keep the local name for immediate UI feedback if needed
-        localStorage.setItem('apex_athlete_profile', JSON.stringify({ ...answers, onboarded: true }))
-        router.push('/dashboard/profile')
+        router.push('/dashboard')
     }
 
     return (
@@ -219,6 +209,23 @@ export default function OnboardingPage() {
                             </p>
                         </div>
 
+                        {/* Text input */}
+                        {cur.type === 'text' && cur.field && (
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="flex items-center gap-4 glass p-4 rounded-2xl w-full max-w-sm">
+                                    <input
+                                        type="text"
+                                        value={answers[cur.field.key] || ''}
+                                        onChange={e => setAnswers(a => ({ ...a, [cur.field!.key]: e.target.value }))}
+                                        placeholder={cur.field.placeholder}
+                                        className="input-glass w-full px-5 py-4 text-[1.4rem] font-display font-black text-center"
+                                        autoFocus
+                                        onKeyDown={e => { if (e.key === 'Enter' && canContinue()) isLast ? finish() : go(1) }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {/* Number input */}
                         {cur.type === 'number' && cur.field && (
                             <div className="flex flex-col items-center gap-3">
@@ -233,6 +240,40 @@ export default function OnboardingPage() {
                                         className="input-glass w-36 px-5 py-4 text-[2rem] font-display font-black text-center"
                                     />
                                     <span className="text-apex-accent font-mono text-[0.85rem] uppercase tracking-wider">{cur.field.unit}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Measurements input */}
+                        {cur.type === 'measurements' && (
+                            <div className="flex gap-4 justify-center">
+                                <div className="flex flex-col items-center gap-2 glass p-5 rounded-2xl flex-1">
+                                    <label className="text-[0.6rem] font-mono text-apex-accent uppercase tracking-[2px]">Height</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={100} max={250}
+                                            value={answers.height || ''}
+                                            onChange={e => setAnswers(a => ({ ...a, height: e.target.value }))}
+                                            placeholder="170"
+                                            className="input-glass w-24 px-3 py-3 text-[1.6rem] font-display font-black text-center"
+                                        />
+                                        <span className="text-apex-accent font-mono text-sm">cm</span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 glass p-5 rounded-2xl flex-1">
+                                    <label className="text-[0.6rem] font-mono text-apex-accent uppercase tracking-[2px]">Weight</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={30} max={200}
+                                            value={answers.weight || ''}
+                                            onChange={e => setAnswers(a => ({ ...a, weight: e.target.value }))}
+                                            placeholder="70"
+                                            className="input-glass w-24 px-3 py-3 text-[1.6rem] font-display font-black text-center"
+                                        />
+                                        <span className="text-apex-accent font-mono text-sm">kg</span>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -259,9 +300,9 @@ export default function OnboardingPage() {
                             </div>
                         )}
 
-                        {/* Regular option cards */}
+                        {/* Option cards */}
                         {cur.type === 'options' && (
-                            <div className={`grid gap-3 ${cur.options!.length === 2 ? 'grid-cols-2' : cur.options!.length === 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <div className={`grid gap-3 ${(cur as any).gridCols === 2 || cur.options!.length === 6 ? 'grid-cols-2' : cur.options!.length === 2 ? 'grid-cols-2' : cur.options!.length === 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {cur.options!.map(opt => {
                                     const sel = answers[cur.id] === opt.value
                                     return (
@@ -295,42 +336,6 @@ export default function OnboardingPage() {
                                                     <Check className="w-3 h-3 text-black" />
                                                 </div>
                                             )}
-                                        </motion.button>
-                                    )
-                                })}
-                            </div>
-                        )}
-
-                        {/* Body type cards */}
-                        {cur.type === 'bodytype' && (
-                            <div className="grid grid-cols-3 gap-4">
-                                {cur.options!.map(opt => {
-                                    const sel = answers[cur.id] === opt.value
-                                    const Svg = (opt as any).svg
-                                    return (
-                                        <motion.button
-                                            key={opt.value}
-                                            whileHover={{ scale: 1.04 }}
-                                            whileTap={{ scale: 0.96 }}
-                                            onClick={() => setAnswers(a => ({ ...a, [cur.id]: opt.value }))}
-                                            className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 ${sel
-                                                    ? 'border-[var(--opt-c)] bg-[var(--opt-c)]/12 shadow-lg'
-                                                    : 'border-white/8 bg-white/3 hover:bg-white/6'
-                                                }`}
-                                            style={{ '--opt-c': opt.color } as any}
-                                        >
-                                            <div
-                                                className="w-full h-28 mb-3"
-                                                style={{ color: sel ? opt.color : 'rgba(255,255,255,0.5)' }}
-                                            >
-                                                <Svg />
-                                            </div>
-                                            <div className="font-display font-bold text-[0.8rem]" style={{ color: sel ? opt.color : '#888' }}>
-                                                {opt.label}
-                                            </div>
-                                            <div className="text-apex-dim text-[0.6rem] font-inter mt-0.5 text-center leading-tight">
-                                                {(opt as any).desc}
-                                            </div>
                                         </motion.button>
                                     )
                                 })}

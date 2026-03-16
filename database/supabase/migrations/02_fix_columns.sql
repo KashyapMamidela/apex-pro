@@ -26,17 +26,21 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   -- Insert into profiles
-  INSERT INTO public.profiles (id, name, goal, level)
+  INSERT INTO public.profiles (id, name, email, goal, experience_level, equipment)
   VALUES (
     new.id, 
-    COALESCE(new.raw_user_meta_data->>'name', 'Athlete'), 
-    'Muscle Gain', 
-    'Intermediate'
-  );
+    COALESCE(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name', 'Athlete'), 
+    new.email,
+    'muscle_gain', 
+    'intermediate',
+    'full_gym'
+  )
+  ON CONFLICT (id) DO NOTHING;
   
   -- Insert into user_stats
-  INSERT INTO public.user_stats (user_id, xp, current_streak)
-  VALUES (new.id, 0, 0);
+  INSERT INTO public.user_stats (user_id, xp, current_streak, level, level_label, total_workouts)
+  VALUES (new.id, 0, 0, 1, 'BEGINNER', 0)
+  ON CONFLICT (user_id) DO NOTHING;
   
   RETURN new;
 END;
