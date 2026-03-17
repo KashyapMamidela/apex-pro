@@ -1,11 +1,44 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
-// Initialize the Google Generative AI SDK with the API key from environment variables
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY || '',
+  baseURL: 'https://api.groq.com/openai/v1',
+})
 
-// We define two models based on latency vs reasoning needs
-// 1.5 Pro for complex plan generation (workouts, diets)
-export const geminiPro = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+const callGroq = async (prompt: string) => {
+  const res = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    max_tokens: 4096,
+  })
+  return {
+    response: {
+      text: () => res.choices[0]?.message?.content || ''
+    }
+  }
+}
 
-// 1.5 Flash for quick responses (question generation, brief analysis)
-export const geminiFlash = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+const callGroqStream = async (messages: { role: string, content: string }[], systemInstruction?: string) => {
+  const formattedMessages: any[] = []
+  if (systemInstruction) {
+    formattedMessages.push({ role: 'system', content: systemInstruction })
+  }
+  formattedMessages.push(...messages.map(m => ({
+    role: m.role === 'model' ? 'assistant' : m.role,
+    content: m.content
+  })))
+
+  const stream = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: formattedMessages,
+    temperature: 0.7,
+    max_tokens: 4096,
+    stream: true,
+  })
+  return stream
+}
+
+export const geminiPro = { generateContent: callGroq }
+export const geminiFlash = { generateContent: callGroq }
+export const groqStream = callGroqStream
