@@ -96,7 +96,7 @@ export default function WorkoutsPage() {
       setPlanId(data.plan_id)
       setCompletedExercises(new Set())
     } catch (e: any) {
-      setError(e.message || 'Failed to generate workout. Check your Gemini API key.')
+      setError(e.message || 'Failed to generate workout. Please try again.')
     } finally {
       setGenerating(false)
     }
@@ -137,7 +137,7 @@ export default function WorkoutsPage() {
   }
 
   if (loading) return <DeadliftLoader message="Loading Training Protocol..." />
-  if (generating) return <DeadliftLoader message="Gemini AI is forging your workout..." />
+  if (generating) return <DeadliftLoader message="APEX AI is building your protocol..." />
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -188,7 +188,7 @@ export default function WorkoutsPage() {
           <Dumbbell className="w-16 h-16 text-apex-accent mx-auto mb-6 opacity-60" />
           <h2 className="font-display text-3xl mb-3 uppercase">Ready to Train?</h2>
           <p className="text-apex-muted text-sm font-inter mb-8 max-w-md mx-auto">
-            Your Gemini AI coach will create a personalized workout based on your goal 
+            Your personal AI coach will create a workout based on your goal 
             ({profile?.goal?.replace('_', ' ')}) and experience level ({profile?.experience_level}).
           </p>
           <button

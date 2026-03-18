@@ -8,7 +8,6 @@ import {
     LayoutDashboard,
     Dumbbell,
     Utensils,
-    TrendingUp,
     ShieldAlert,
     Settings,
     LogOut,
@@ -24,8 +23,7 @@ const navItems = [
     { name: 'OVERVIEW', icon: <LayoutDashboard className="w-4 h-4" />, href: '/dashboard' },
     { name: 'WORKOUTS', icon: <Dumbbell className="w-4 h-4" />, href: '/dashboard/workouts' },
     { name: 'NUTRITION', icon: <Utensils className="w-4 h-4" />, href: '/dashboard/nutrition' },
-    { name: 'PROGRESS', icon: <TrendingUp className="w-4 h-4" />, href: '/dashboard/progress' },
-    { name: 'TRACKER', icon: <Activity className="w-4 h-4" />, href: '/dashboard/tracker' },
+    { name: 'APEX TRACKER', icon: <Activity className="w-4 h-4" />, href: '/dashboard/tracker' },
     { name: 'COMMUNITY', icon: <Users className="w-4 h-4" />, href: '/dashboard/community' },
     { name: 'PROFILE', icon: <User className="w-4 h-4" />, href: '/dashboard/profile' },
     { name: 'SETTINGS', icon: <Settings className="w-4 h-4" />, href: '/dashboard/settings' },
@@ -39,10 +37,57 @@ export default function Sidebar() {
     const [xpLevel, setXpLevel] = useState({ label: 'Rookie', xp: 850, max: 1500, color: '#00d4ff' })
 
     useEffect(() => {
-        const supabase = createClient()
-        supabase.auth.getUser().then(({ data }: any) => {
-            if (data?.user) setUser(data.user)
-        })
+        const loadUser = async () => {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            setUser(user)
+
+            const { data: stats } = await supabase
+                .from('user_stats')
+                .select('xp, level, level_label')
+                .eq('user_id', user.id)
+                .single()
+
+            if (stats) {
+                const levelMaxMap: Record<number, number> = {
+                    1: 500, 2: 1000, 3: 2000, 4: 4000, 5: 8000,
+                    6: 15000, 7: 25000, 8: 40000, 9: 60000, 10: 100000
+                }
+                const levelColorMap: Record<string, string> = {
+                    'BEGINNER': '#4ade80',
+                    'CHALLENGER': '#00d4ff',
+                    'VETERAN': '#ffd700',
+                    'ELITE': '#ff9d00',
+                    'APEX PREDATOR': '#ff4545'
+                }
+                const label = stats.level_label || 'BEGINNER'
+                const level = stats.level || 1
+                setXpLevel({
+                    label,
+                    xp: stats.xp || 0,
+                    max: levelMaxMap[level] || 1000,
+                    color: levelColorMap[label] || '#00d4ff'
+                })
+            }
+
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('name')
+                .eq('id', user.id)
+                .single()
+
+            if (profileData?.name) {
+                setUser((prev: any) => ({
+                    ...prev,
+                    user_metadata: {
+                        ...prev?.user_metadata,
+                        full_name: profileData.name
+                    }
+                }))
+            }
+        }
+        loadUser()
     }, [])
 
     // Close mobile drawer on route change

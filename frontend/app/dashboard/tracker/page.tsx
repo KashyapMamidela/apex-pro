@@ -228,6 +228,26 @@ export default function TrackerPage() {
                     </div>
                 )}
             </div>
+            <div className="card-glass p-6 mt-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-display text-xl uppercase tracking-wide">
+                        Progress <span className="text-apex-accent">Timeline</span>
+                    </h3>
+                    <button className="btn-ghost text-xs font-mono uppercase px-4 py-2 rounded-xl">
+                        Add Photo
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="aspect-[3/4] bg-white/3 border border-white/8 rounded-2xl flex flex-col items-center justify-center">
+                        <div className="text-apex-dim text-[0.65rem] font-mono uppercase tracking-wider">Start Photo</div>
+                        <div className="text-apex-dim text-[0.55rem] mt-1">Upload to begin tracking</div>
+                    </div>
+                    <div className="aspect-[3/4] bg-white/3 border border-white/8 rounded-2xl flex flex-col items-center justify-center">
+                        <div className="text-apex-accent text-[0.65rem] font-mono uppercase tracking-wider">Latest</div>
+                        <div className="text-apex-dim text-[0.55rem] mt-1">Upload current photo</div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

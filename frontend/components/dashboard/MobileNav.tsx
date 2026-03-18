@@ -26,7 +26,7 @@ const navItems = [
 
 export default function MobileNav() {
     const pathname = usePathname()
-    const isProgressActive = pathname === '/dashboard/progress'
+    const isTrackerActive = pathname === '/dashboard/tracker'
     const isForgeActive = pathname === '/dashboard/forge'
 
     return (
@@ -53,12 +53,12 @@ export default function MobileNav() {
                 {/* CENTER — Elevated Apex Tracker (Progress) */}
                 <div className="flex-1 flex items-end justify-center pb-1">
                     <Link
-                        href="/dashboard/progress"
-                        className={`flex flex-col items-center justify-center w-[58px] h-[58px] rounded-full -translate-y-4 border-4 transition-all shadow-lg ${isProgressActive
+                        href="/dashboard/tracker"
+                        className={`flex flex-col items-center justify-center w-[58px] h-[58px] rounded-full -translate-y-4 border-4 transition-all shadow-lg ${isTrackerActive
                             ? 'bg-apex-accent border-bg text-bg shadow-apex-accent/40'
                             : 'bg-card border-border-glow text-apex-accent hover:bg-card-2'
                             }`}
-                        style={isProgressActive ? { boxShadow: '0 0 20px rgba(200,255,0,0.4)' } : {}}
+                        style={isTrackerActive ? { boxShadow: '0 0 20px rgba(200,255,0,0.4)' } : {}}
                     >
                         <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
