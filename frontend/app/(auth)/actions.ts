@@ -32,13 +32,11 @@ export async function signup(formData: FormData) {
 
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: {
-        name,
-      },
+      data: { name },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
     },
   })
@@ -47,23 +45,15 @@ export async function signup(formData: FormData) {
     redirect('/signup?error=' + encodeURIComponent(error.message))
   }
 
-  // Attempt to sign in immediately. 
-  // NOTE: If email confirmation is enabled in Supabase, this might fail with "Email not confirmed".
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-
-  if (signInError) {
-    // If sign-in fails after a successful signup, it's likely due to email confirmation being required.
-    if (signInError.message.toLowerCase().includes('confirm')) {
-      redirect('/login?message=' + encodeURIComponent('Please check your email to confirm your account before logging in.'))
-    }
-    redirect('/login?error=' + encodeURIComponent(signInError.message))
+  if (data.session) {
+    redirect('/onboarding')
   }
 
-  redirect('/dashboard')
+  redirect('/login?message=' + encodeURIComponent(
+    'Account created! Check your email to confirm, then log in.'
+  ))
 }
+
 
 export async function logout() {
   const supabase = await createClient()

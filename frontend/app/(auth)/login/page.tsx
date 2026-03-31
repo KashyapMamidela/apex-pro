@@ -176,6 +176,11 @@ function LoginForm() {
                             />
                         </div>
                         {error && <p className="text-apex-danger text-[0.78rem] font-inter bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20">{error}</p>}
+                        {searchParams.get('message') && (
+                            <p className="text-apex-info text-[0.78rem] font-inter bg-blue-500/10 px-3 py-2 rounded-xl border border-blue-500/20">
+                                {decodeURIComponent(searchParams.get('message') || '')}
+                            </p>
+                        )}
                         <button type="submit" className="btn-primary w-full py-4 text-[0.9rem] rounded-xl mt-2">
                             Login to Forge →
                         </button>

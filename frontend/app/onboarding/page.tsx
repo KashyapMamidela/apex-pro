@@ -51,6 +51,18 @@ const steps = [
         ],
     },
     {
+        id: 'sport_type', title: 'Any sport or athletic focus?', subtitle: 'This helps us add sport-specific conditioning to your plan.',
+        type: 'options',
+        options: [
+            { value: 'recreational', label: 'Just Fitness', color: '#22c55e', emoji: '🏃', desc: 'No specific sport, general health' },
+            { value: 'cricket_football', label: 'Team Sports', color: '#FFD400', emoji: '⚽', desc: 'Cricket, football, basketball, volleyball' },
+            { value: 'running_cycling', label: 'Endurance', color: '#00d4ff', emoji: '🚴', desc: 'Running, cycling, swimming, triathlon' },
+            { value: 'martial_arts', label: 'Combat Sports', color: '#ff4545', emoji: '🥊', desc: 'Boxing, MMA, wrestling, martial arts' },
+            { value: 'yoga_mobility', label: 'Mind & Body', color: '#9d4edd', emoji: '🧘', desc: 'Yoga, pilates, flexibility, meditation' },
+            { value: 'competitive_gym', label: 'Competitive Gym', color: '#ff9d00', emoji: '🏋️', desc: 'Powerlifting, bodybuilding, CrossFit' },
+        ],
+    },
+    {
         id: 'activity', title: 'How active are you currently?', subtitle: 'Your daily movement outside the gym affects your calorie needs.',
         type: 'options',
         options: [
@@ -141,28 +153,19 @@ export default function OnboardingPage() {
                     weight: Number(answers.weight),
                     body_type: answers.activity,
                     equipment: answers.equipment,
+                    sport_type: answers.sport_type || 'recreational',
+                    workout_days: Number(answers.days) || 3,
+                    session_duration: answers.duration || '45-60',
+                    diet_preference: answers.diet || 'flex',
                     is_profile_complete: true,
                 }).eq('id', user.id)
-
-                localStorage.setItem('apex_athlete_profile', JSON.stringify({
-                    name: answers.name,
-                    age: answers.age,
-                    gender: answers.gender,
-                    goal: answers.goal,
-                    level: answers.level,
-                    height: answers.height,
-                    weight: answers.weight,
-                    activity: answers.activity,
-                    equipment: answers.equipment,
-                    days: answers.days,
-                    duration: answers.duration,
-                    diet: answers.diet,
-                    onboarded: true
-                }))
             }
         } catch (e) {
             console.error('Failed to save profile', e)
         }
+        localStorage.setItem('apex_athlete_profile', JSON.stringify({
+            ...answers, onboarded: true
+        }))
         router.push('/dashboard')
     }
 

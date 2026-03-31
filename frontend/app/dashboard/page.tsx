@@ -172,7 +172,7 @@ export default function DashboardOverview() {
             </header>
 
             {/* Friends Stories Strip */}
-            <div className="bg-card border border-border-main p-4">
+            <div className="card-glass p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <Users className="w-3.5 h-3.5 text-apex-accent" />
                     <span className="text-[0.65rem] font-mono tracking-[2px] text-apex-muted uppercase">FRIENDS TRAINING TODAY</span>
@@ -207,7 +207,7 @@ export default function DashboardOverview() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
                 {/* Streak Card — large (2 cols) */}
-                <div className="lg:col-span-2 bg-card border border-border-main p-6 relative overflow-hidden group hover:border-border-glow transition-colors">
+                <div className="lg:col-span-2 card-glass p-6 relative overflow-hidden group hover:border-border-glow transition-colors">
                     {/* Background deadlift silhouette watermark */}
                     <div className="absolute right-4 bottom-0 opacity-[0.04] pointer-events-none select-none">
                         <svg width="110" height="140" viewBox="0 0 110 140" fill="currentColor">
@@ -260,7 +260,7 @@ export default function DashboardOverview() {
                 </div>
 
                 {/* Daily Score Ring */}
-                <div className="bg-card border border-border-main p-6 flex flex-col items-center group hover:border-border-glow transition-colors">
+                <div className="card-glass p-6 flex flex-col items-center group hover:border-border-glow transition-colors">
                     <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4 self-start">DAILY SCORE</div>
                     <div className="relative w-32 h-32">
                         <svg className="w-full h-full -rotate-90">
@@ -297,7 +297,7 @@ export default function DashboardOverview() {
                 </div>
 
                 {/* Calories Ring */}
-                <div className="bg-card border border-border-main p-6 flex flex-col items-center group hover:border-border-glow transition-colors">
+                <div className="card-glass p-6 flex flex-col items-center group hover:border-border-glow transition-colors">
                     <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4 self-start">CALORIES TODAY</div>
                     <div className="relative w-32 h-32">
                         <svg className="w-full h-full -rotate-90">
@@ -328,7 +328,7 @@ export default function DashboardOverview() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
                 {/* Workout — 2 cols */}
-                <div className="lg:col-span-2 bg-card border border-border-main">
+                <div className="lg:col-span-2 card-glass">
                     <div className="flex items-center justify-between px-6 py-4 border-b border-border-main">
                         <div className="flex items-center gap-3">
                             <Dumbbell className="w-4 h-4 text-apex-accent" />
@@ -421,7 +421,7 @@ export default function DashboardOverview() {
                 <div className="space-y-4">
 
                     {/* XP Level Card */}
-                    <div className="bg-card border border-border-main p-6">
+                    <div className="card-glass p-6">
                         <div className="flex items-center justify-between mb-4">
                             <div className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase">YOUR LEVEL</div>
                             <Zap className="w-4 h-4" style={{ color: level.color }} />
@@ -464,7 +464,7 @@ export default function DashboardOverview() {
                     </div>
 
                     {/* Badges */}
-                    <div className="bg-card border border-border-main p-6">
+                    <div className="card-glass p-6">
                         <h3 className="text-[0.6rem] font-mono tracking-[2px] text-apex-muted uppercase mb-4">STREAK BADGES</h3>
                         <div className="grid grid-cols-3 gap-2">
                             {[
@@ -492,3 +492,4 @@ export default function DashboardOverview() {
         </div>
     )
 }
+

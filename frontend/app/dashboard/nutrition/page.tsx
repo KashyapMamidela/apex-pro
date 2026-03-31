@@ -10,12 +10,42 @@ export default function NutritionDashboard() {
     const [loading, setLoading] = useState(true)
     const [generating, setGenerating] = useState(false)
     const [water, setWater] = useState(0)
+    const [swappingMeal, setSwappingMeal] = useState<number | null>(null)
+    const [swapInput, setSwapInput] = useState('')
+    const [swapping, setSwapping] = useState(false)
 
     const [profile, setProfile] = useState<any>(null)
 
     useEffect(() => {
         init()
     }, [])
+
+    const swapMeal = async (mealIndex: number) => {
+        if (!swapInput.trim() || !plan) return
+        setSwapping(true)
+        try {
+            const res = await fetch('/api/swap-meal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    originalMeal: plan.meals[mealIndex],
+                    userRequest: swapInput,
+                    userProfile: profile
+                })
+            })
+            const data = await res.json()
+            if (data.meal) {
+                const updatedMeals = [...plan.meals]
+                updatedMeals[mealIndex] = data.meal
+                setPlan({ ...plan, meals: updatedMeals })
+                setSwappingMeal(null)
+                setSwapInput('')
+            }
+        } catch (e) {
+            console.error(e)
+        }
+        setSwapping(false)
+    }
 
     const init = async () => {
         setLoading(true)
@@ -171,9 +201,16 @@ export default function NutritionDashboard() {
                                     <div className="text-[0.65rem] font-mono text-apex-accent uppercase tracking-widest mb-1">{meal.type}</div>
                                     <h3 className="font-display text-2xl">{meal.name}</h3>
                                 </div>
-                                <div className="text-right">
-                                    <div className="font-mono font-bold text-lg text-apex-warn">{meal.calories}</div>
-                                    <div className="text-[0.6rem] text-apex-dim uppercase">kcal</div>
+                                <div className="text-right flex items-start gap-2">
+                                    <div>
+                                        <div className="font-mono font-bold text-lg text-apex-warn">{meal.calories}</div>
+                                        <div className="text-[0.6rem] text-apex-dim uppercase">kcal</div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSwappingMeal(swappingMeal === i ? null : i)}
+                                        className="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-apex-accent/20 hover:border-apex-accent/50 transition-all flex items-center justify-center text-apex-muted hover:text-apex-accent text-lg leading-none ml-2"
+                                        title="Swap this meal"
+                                    >+</button>
                                 </div>
                             </div>
                             
@@ -194,6 +231,27 @@ export default function NutritionDashboard() {
                             {meal.recipe_tip && (
                                 <div className="text-xs font-inter text-apex-info/80 bg-apex-info/10 p-3 rounded-lg border border-apex-info/20">
                                     <strong>Chef AI:</strong> {meal.recipe_tip}
+                                </div>
+                            )}
+
+                            {swappingMeal === i && (
+                                <div className="mt-4 p-4 bg-black/40 rounded-xl border border-apex-accent/20">
+                                    <div className="text-[0.65rem] font-mono text-apex-accent uppercase tracking-wider mb-2">Replace with something else</div>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={swapInput}
+                                            onChange={e => setSwapInput(e.target.value)}
+                                            placeholder="e.g. I want something with eggs..."
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-inter focus:border-apex-accent focus:outline-none"
+                                            onKeyDown={e => { if (e.key === 'Enter') swapMeal(i) }}
+                                        />
+                                        <button
+                                            onClick={() => swapMeal(i)}
+                                            disabled={swapping || !swapInput.trim()}
+                                            className="btn-primary px-4 py-2 text-xs rounded-lg disabled:opacity-40"
+                                        >{swapping ? '...' : 'Swap'}</button>
+                                    </div>
                                 </div>
                             )}
                             

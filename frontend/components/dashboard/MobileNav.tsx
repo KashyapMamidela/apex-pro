@@ -8,19 +8,18 @@ import {
     Utensils,
     User,
     Zap,
-    Activity,
+    Users,
 } from 'lucide-react'
 
 // Mobile bottom nav — visible on md and below only
 // Center item (Apex Tracker) is elevated like a FAB button
 
 const navItems = [
-    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard', href: '/dashboard' },
-    { icon: <Dumbbell className="w-5 h-5" />, label: 'Workouts', href: '/dashboard/workouts' },
-    // CENTER — Apex Tracker (elevated)
+    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Home', href: '/dashboard' },
+    { icon: <Dumbbell className="w-5 h-5" />, label: 'Train', href: '/dashboard/workouts' },
     null,
-    { icon: <Activity className="w-5 h-5" />, label: 'Tracker', href: '/dashboard/tracker' },
-    { icon: <Utensils className="w-5 h-5" />, label: 'Diet', href: '/dashboard/nutrition' },
+    { icon: <Utensils className="w-5 h-5" />, label: 'Fuel', href: '/dashboard/nutrition' },
+    { icon: <Users className="w-5 h-5" />, label: 'Community', href: '/dashboard/community' },
     { icon: <User className="w-5 h-5" />, label: 'Profile', href: '/dashboard/profile' },
 ]
 
@@ -50,7 +49,7 @@ export default function MobileNav() {
                     )
                 })}
 
-                {/* CENTER — Elevated Apex Tracker (Progress) */}
+                {/* CENTER — Elevated Apex Tracker FAB */}
                 <div className="flex-1 flex items-end justify-center pb-1">
                     <Link
                         href="/dashboard/tracker"
@@ -67,7 +66,7 @@ export default function MobileNav() {
                     </Link>
                 </div>
 
-                {/* Right 2 items */}
+                {/* Right 3 items */}
                 {navItems.slice(3).map((item, i) => {
                     if (!item) return null
                     const active = pathname === item.href
@@ -84,16 +83,16 @@ export default function MobileNav() {
                     )
                 })}
 
-                {/* Elite Forge icon — top-right (Instagram-style) */}
+                {/* Forge pill — top right */}
                 <Link
                     href="/dashboard/forge"
-                    className={`absolute top-2 right-3 p-2 rounded-full transition-all ${isForgeActive
-                        ? 'bg-apex-accent/20 text-apex-accent'
-                        : 'text-apex-dim hover:text-apex-accent'
-                        }`}
-                    title="Elite Forge"
+                    className={`absolute top-1 right-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.5rem] font-mono uppercase transition-all border ${
+                        isForgeActive
+                            ? 'bg-apex-accent/20 border-apex-accent/50 text-apex-accent'
+                            : 'border-white/10 text-apex-dim hover:text-apex-accent'
+                    }`}
                 >
-                    <Zap className="w-4.5 h-4.5" />
+                    <Zap className="w-3 h-3" /> Forge
                 </Link>
             </div>
         </div>

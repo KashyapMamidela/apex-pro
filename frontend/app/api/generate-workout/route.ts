@@ -31,6 +31,7 @@ USER PROFILE:
 - Available Equipment: ${userProfile.equipment || 'full_gym'}
 - Preferred Session Duration: ${userProfile.session_duration || '45-60'} minutes
 - Workout Days Per Week: ${userProfile.workout_days || 3}
+- Sport / Athletic Focus: ${userProfile.sport_type || 'recreational'}
 - Diet Preference: ${userProfile.diet_preference || 'flexible'}
 
 IMPORTANT PERSONALIZATION RULES:
@@ -47,6 +48,10 @@ IMPORTANT PERSONALIZATION RULES:
 - If gender is 'female', include exercises targeting glutes and core more prominently
 - Session duration must match the requested duration range
 - Workout days affects weekly split — if 3 days: push/pull/legs or full body, if 5+ days: split muscle groups
+- If sport is 'cricket_football': include explosive power exercises (box jumps, lateral shuffles, sprint drills), agility and change of direction work alongside strength training
+- If sport is 'running_cycling': include more leg endurance, hip flexor work, and avoid excessive leg volume that causes fatigue for their sport
+- If sport is 'martial_arts': include core rotation, striking power movements, grappling endurance circuits
+- If sport is 'competitive_gym': periodize for powerlifting or bodybuilding depending on goal
 
 PREVIOUS WORKOUT CONTEXT:
 ${previousWorkouts && previousWorkouts.length > 0 ? JSON.stringify(previousWorkouts) : 'First workout — start with baseline assessment weights'}

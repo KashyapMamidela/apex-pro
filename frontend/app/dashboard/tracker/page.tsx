@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { Activity, Scale, Target, TrendingDown, ArrowUpRight, Plus, Loader2 } from 'lucide-react'
+import { Activity, Scale, Target, TrendingDown, ArrowUpRight, Plus } from 'lucide-react'
+import DeadliftLoader from '@/components/ui/DeadliftLoader'
 
 export default function TrackerPage() {
     const [loading, setLoading] = useState(true)
@@ -92,11 +93,7 @@ export default function TrackerPage() {
         diff: weightLogs.length > 1 ? (weightLogs[weightLogs.length - 1].weight - weightLogs[0].weight).toFixed(1) : '0.0'
     }
 
-    if (loading) return (
-        <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 text-apex-accent animate-spin" />
-        </div>
-    )
+    if (loading) return <DeadliftLoader message="Loading your metrics..." />
 
     return (
         <div className="max-w-5xl mx-auto py-8 px-6 animate-fade-up">

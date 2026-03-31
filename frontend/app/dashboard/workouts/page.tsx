@@ -30,7 +30,7 @@ export default function WorkoutsPage() {
       // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('name, goal, experience_level, equipment, age, gender, body_type, height, weight')
+        .select('name, goal, experience_level, equipment, age, gender, body_type, height, weight, sport_type')
         .eq('id', user.id)
         .single()
 
@@ -49,6 +49,7 @@ export default function WorkoutsPage() {
         weight: profileData?.weight || local.weight || 70,
         session_duration: local.duration || '45-60',
         workout_days: local.days || 3,
+        sport_type: (profileData as any)?.sport_type || local.sport_type || 'recreational',
         diet_preference: local.diet || 'flex',
       }
       setProfile(p)
@@ -202,7 +203,7 @@ export default function WorkoutsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Session Header */}
-            <div className="bg-card border border-border-main p-6">
+            <div className="card-glass p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="font-display text-2xl uppercase tracking-wide">{plan.session_name}</h2>
@@ -240,7 +241,7 @@ export default function WorkoutsPage() {
             </div>
 
             {/* Exercises */}
-            <div className="bg-card border border-border-main overflow-hidden">
+            <div className="card-glass overflow-hidden">
               <div className="p-5 border-b border-border-main">
                 <h3 className="font-display text-lg uppercase tracking-wide">
                   Exercises · {completedExercises.size}/{plan.exercises?.length} Done
@@ -284,19 +285,77 @@ export default function WorkoutsPage() {
                         </button>
                       </div>
                       {expanded && (
-                        <div className="px-5 pb-5 pt-0 ml-10 space-y-2">
-                          <p className="text-[0.75rem] text-apex-muted font-inter leading-relaxed">
-                            <strong className="text-apex-text">Form cue:</strong> {ex.form_cue}
-                          </p>
-                          <div className="flex gap-2 flex-wrap">
-                            <span className="text-[0.65rem] bg-surface border border-border-main px-2 py-1 font-mono">
-                              {ex.muscle_group}
-                            </span>
-                            {ex.secondary_muscles?.map((m: string) => (
-                              <span key={m} className="text-[0.65rem] bg-surface border border-border-main px-2 py-1 font-mono text-apex-muted">
-                                {m}
-                              </span>
-                            ))}
+                        <div className="px-5 pb-6 pt-2 ml-10 space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Column 1: Form cues */}
+                            <div className="card-glass p-4">
+                              <div className="text-[0.6rem] font-mono text-apex-accent uppercase tracking-[2px] mb-3">Form Cues</div>
+                              <ul className="space-y-2">
+                                {(ex.form_cue || '').split(/[.!]/).filter(Boolean).slice(0, 3).map((cue: string, ci: number) => (
+                                  <li key={ci} className="flex gap-2 items-start">
+                                    <span className="w-4 h-4 rounded-full bg-apex-accent/20 text-apex-accent text-[0.6rem] flex items-center justify-center font-bold shrink-0 mt-0.5">{ci + 1}</span>
+                                    <span className="text-[0.75rem] text-apex-muted font-inter leading-relaxed">{cue.trim()}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            {/* Column 2: Muscles */}
+                            <div className="card-glass p-4">
+                              <div className="text-[0.6rem] font-mono text-apex-accent uppercase tracking-[2px] mb-3">Muscles Targeted</div>
+                              <div className="mb-3">
+                                <div className="text-[0.58rem] text-apex-dim uppercase mb-1.5">Primary</div>
+                                <span className="inline-block px-3 py-1 rounded-full bg-apex-accent/20 text-apex-accent text-[0.7rem] font-mono border border-apex-accent/30">{ex.muscle_group}</span>
+                              </div>
+                              {ex.secondary_muscles?.length > 0 && (
+                                <div>
+                                  <div className="text-[0.58rem] text-apex-dim uppercase mb-1.5">Secondary</div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {ex.secondary_muscles.map((m: string) => (
+                                      <span key={m} className="px-2 py-0.5 rounded-full bg-white/5 text-apex-muted text-[0.65rem] font-mono border border-white/10">{m}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              <div className="mt-3 pt-3 border-t border-white/5">
+                                <div className="text-[0.65rem] font-inter text-apex-dim"><span className="text-apex-muted">Equipment: </span>{ex.equipment_needed || 'Standard'}</div>
+                              </div>
+                            </div>
+                            {/* Column 3: Body diagram */}
+                            <div className="card-glass p-4 flex flex-col items-center">
+                              <div className="text-[0.6rem] font-mono text-apex-accent uppercase tracking-[2px] mb-3 self-start">Target Zone</div>
+                              <svg viewBox="0 0 80 160" className="w-20 h-40" fill="none">
+                                <ellipse cx="40" cy="16" rx="12" ry="12" fill="#1c1c1c" stroke="#333" strokeWidth="1"/>
+                                <rect x="36" y="28" width="8" height="8" rx="2" fill="#1c1c1c" stroke="#333" strokeWidth="1"/>
+                                <rect x="24" y="36" width="32" height="22" rx="4"
+                                  fill={['chest','pectorals','pecs'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['chest','pectorals'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="28" y="58" width="24" height="20" rx="3"
+                                  fill={['abs','core','abdominal'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['abs','core'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="10" y="36" width="12" height="36" rx="5"
+                                  fill={['bicep','tricep','arm','shoulder','delt'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['bicep','tricep','shoulder'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="58" y="36" width="12" height="36" rx="5"
+                                  fill={['bicep','tricep','arm','shoulder','delt'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['bicep','tricep','shoulder'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="26" y="80" width="12" height="40" rx="5"
+                                  fill={['quad','leg','thigh','glute'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['quad','leg','glute'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="42" y="80" width="12" height="40" rx="5"
+                                  fill={['quad','leg','thigh','glute'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : ex.secondary_muscles?.some((m: string) => ['quad','leg','glute'].some((k: string) => m.toLowerCase().includes(k))) ? '#ff9d00' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="27" y="122" width="10" height="28" rx="4"
+                                  fill={['calf','calves'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                                <rect x="43" y="122" width="10" height="28" rx="4"
+                                  fill={['calf','calves'].some((k: string) => ex.muscle_group?.toLowerCase().includes(k)) ? '#FFD400' : '#1c1c1c'}
+                                  stroke="#333" strokeWidth="1"/>
+                              </svg>
+                              <div className="flex gap-3 mt-2 text-[0.55rem] font-mono">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#FFD400]"/>Primary</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#ff9d00]"/>Secondary</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -349,3 +408,4 @@ export default function WorkoutsPage() {
     </div>
   )
 }
+

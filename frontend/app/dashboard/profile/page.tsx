@@ -11,6 +11,7 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true)
     const [editing, setEditing] = useState(false)
     const [formData, setFormData] = useState({ name: '', bio: '', instagram: '' })
+    const [bannerTagline, setBannerTagline] = useState('')
     
     // Play SFX on certain interactions
     const playLevelClick = () => {
@@ -60,6 +61,18 @@ export default function ProfilePage() {
                 })
             }
             if (statsData) setStats(statsData)
+
+            if (profileData && statsData) {
+                const level = statsData.level_label || 'BEGINNER'
+                const taglines: Record<string, string> = {
+                    'BEGINNER': 'Every champion was once a beginner.',
+                    'CHALLENGER': 'The grind is where legends are forged.',
+                    'VETERAN': 'Consistency built this. Discipline will take it further.',
+                    'ELITE': 'You have outworked most. Now outwork yourself.',
+                    'APEX PREDATOR': 'You are the standard. Raise it again.',
+                }
+                setBannerTagline(taglines[level] || 'The journey has just begun.')
+            }
             
         } catch (e) {
             console.error('Failed to load profile', e)
@@ -99,8 +112,32 @@ export default function ProfilePage() {
             {/* Header / Banner area */}
             <div className="card-glass overflow-hidden mb-8 relative">
                 {/* Banner Image */}
-                <div className="h-48 bg-gradient-to-r from-bg via-black to-bg border-b border-white/5 relative">
-                    <div className="absolute inset-0 bg-grid-white/[0.02]" />
+                <div className="h-48 relative overflow-hidden"
+                    style={{
+                        background: `linear-gradient(135deg, ${
+                            stats?.level_label === 'ELITE' || stats?.level_label === 'APEX PREDATOR' ? '#1a0f00' :
+                            stats?.level_label === 'VETERAN' ? '#0d1a00' :
+                            stats?.level_label === 'CHALLENGER' ? '#001a1a' :
+                            '#0b0b0b'
+                        } 0%, #0b0b0b 100%)`
+                    }}>
+                    <div className="absolute inset-0 flex flex-col justify-center px-10 pb-4">
+                        <div className="font-mono text-[0.6rem] tracking-[4px] text-apex-accent uppercase mb-2 opacity-70">
+                            APEX ATHLETE
+                        </div>
+                        <div className="font-display text-[2.5rem] font-black leading-none mb-2 uppercase"
+                            style={{
+                                color: stats?.level_label === 'ELITE' ? '#ff9d00' :
+                                       stats?.level_label === 'VETERAN' ? '#ffd700' :
+                                       stats?.level_label === 'CHALLENGER' ? '#00d4ff' :
+                                       '#FFD400'
+                            }}>
+                            {stats?.level_label || 'INITIATE'}
+                        </div>
+                        <div className="text-apex-muted text-sm font-inter italic">
+                            {bannerTagline}
+                        </div>
+                    </div>
                     <button className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-inter transition-colors flex items-center gap-2">
                         <ImageIcon className="w-4 h-4" /> Change Banner
                     </button>
@@ -110,11 +147,28 @@ export default function ProfilePage() {
                     {/* Avatar */}
                     <div className="relative group cursor-pointer">
                         <div className="w-32 h-32 rounded-2xl bg-black border-4 border-bg overflow-hidden relative">
-                            <img 
-                                src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.name || 'Athlete'}`} 
-                                alt={profile?.name} 
-                                className="w-full h-full object-cover"
-                            />
+                            {profile?.avatar_url ? (
+                                <img
+                                    src={profile.avatar_url}
+                                    alt={profile.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div
+                                    className="w-full h-full flex items-center justify-center font-display text-5xl font-black"
+                                    style={{
+                                        background: `linear-gradient(135deg, ${
+                                            stats?.level_label === 'ELITE' ? '#ff9d00' :
+                                            stats?.level_label === 'VETERAN' ? '#ffd700' :
+                                            stats?.level_label === 'CHALLENGER' ? '#00d4ff' :
+                                            '#FFD400'
+                                        } 0%, rgba(0,0,0,0.8) 100%)`,
+                                        color: '#000',
+                                    }}
+                                >
+                                    {(profile?.name || 'A')[0].toUpperCase()}
+                                </div>
+                            )}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                                 <Camera className="w-8 h-8 text-white" />
                             </div>

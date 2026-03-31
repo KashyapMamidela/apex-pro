@@ -275,11 +275,19 @@ body {
   background: rgba(28, 28, 28, 0.55);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--radius-xl);
+  border: 0.5px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.card-sharp-to-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
 }
 
 .glass-accent {
@@ -433,3 +441,20 @@ body {
 .xp-bar {
   transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ══════════════════════════════════════════
+   LOADING DOTS
+══════════════════════════════════════════ */
+@keyframes dot-pulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.loading-dots span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dot-pulse 1.4s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }

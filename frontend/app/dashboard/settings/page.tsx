@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Settings Form */}
-                <div className="bg-card border border-border-main p-8 space-y-8">
+                <div className="card-glass p-8 space-y-8">
                     <section className="space-y-6">
                         <h3 className="font-display text-xl tracking-[1px] uppercase border-b border-border-main pb-4">PERSONAL IDENTIFIERS</h3>
 
@@ -267,4 +267,5 @@ export default function SettingsPage() {
         </div>
     )
 }
+
 
